@@ -166,6 +166,8 @@ export async function fetchNasaClimate(
 
     if (parsed.length === 0) return null;
 
+    fillSolarGaps(parsed, (date) => isValid(parameter.ALLSKY_SFC_SW_DWN?.[toApiDate(date)]));
+
     return {
       location,
       updatedAt: new Date().toISOString(),
@@ -180,6 +182,28 @@ export async function fetchNasaClimate(
     return null;
   } finally {
     clearTimeout(timeout);
+  }
+}
+
+/**
+ * A radiação solar (`ALLSKY_SFC_SW_DWN`) chega na NASA POWER com mais atraso que
+ * os outros parâmetros: os dias mais recentes vêm como -999. Em vez de mostrar
+ * "0 kWh/m²", repetimos a leitura válida mais recente (ou a primeira seguinte,
+ * se o buraco estiver no começo da série). A condição do céu continua sendo
+ * calculada sem a radiação nesses dias.
+ */
+function fillSolarGaps(days: DailyClimate[], hasReading: (isoDate: string) => boolean) {
+  const valid = days.map((day) => hasReading(day.date));
+  const firstValid = valid.indexOf(true);
+  if (firstValid < 0) return;
+
+  let last = days[firstValid].solarKwh;
+  for (let index = 0; index < days.length; index += 1) {
+    if (valid[index]) {
+      last = days[index].solarKwh;
+    } else {
+      days[index] = { ...days[index], solarKwh: last };
+    }
   }
 }
 
