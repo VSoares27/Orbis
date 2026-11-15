@@ -12,13 +12,23 @@
  * "Mais chuvoso" e "mais seco" usam a chuva total do ano civil. A temperatura
  * de cada cenário é a média do mesmo grupo de anos.
  *
+ * Se a consulta online falhar perto de Serra Talhada (até 0,75°), usa a cópia
+ * da NASA POWER embutida no app (`src/data/serra-talhada-clima.json`). Em
+ * qualquer outro lugar, lança erro: não inventamos dados.
+ *
  * As chaves `ssp*` foram mantidas só porque são o contrato com as telas.
  * A API de projeção da NASA POWER (CMIP6) não cobre o Brasil, por isso não é
  * consultada.
  */
 
 import { buildAnnual, MONTH_LABELS } from '@/lib/projection';
-import type { MonthValues, YearSeries } from '@/lib/serra-talhada';
+import {
+  embeddedSerraTalhadaYears,
+  isNearSerraTalhada,
+  SERRA_TALHADA_ACCESSED_PT,
+  type MonthValues,
+  type YearSeries,
+} from '@/lib/serra-talhada';
 import type { ClimateProjection, ClimateScenario, FarmLocation, MonthlyProjection } from '@/types';
 
 export type { MonthValues, YearSeries } from '@/lib/serra-talhada';
@@ -37,10 +47,21 @@ const REQUEST_TIMEOUT_MS = 12_000;
 export const PROJECTION_ERROR_MESSAGE =
   'Não foi possível obter os dados históricos de chuva e temperatura.';
 
+export const OFFLINE_FALLBACK_NOTE =
+  `Dados da NASA POWER salvos no app (acessados em ${SERRA_TALHADA_ACCESSED_PT}), usados porque a consulta online falhou.`;
+
+/**
+ * Depois de uma falha online perto de Serra Talhada, usa direto os dados
+ * embutidos por este tempo, para trocar de cenário sem esperar outro timeout.
+ */
+const OFFLINE_RETRY_AFTER_MS = 2 * 60_000;
+
 /** Histórico ano a ano por coordenada (troca de cenário sem nova chamada). */
 const yearsCache = new Map<string, Promise<YearSeries[] | null>>();
 /** Resultado pronto por coordenada + cenário. */
 const projectionCache = new Map<string, ClimateProjection>();
+/** Quando a última consulta online falhou, por coordenada. */
+const lastFailureAt = new Map<string, number>();
 
 type ParameterSeries = Record<string, number>;
 
@@ -67,14 +88,37 @@ export async function fetchNasaProjection(
   const cached = projectionCache.get(cacheKey);
   if (cached) return cached;
 
-  const years = await loadYearSeries(location);
-  if (!years) {
+  const nearSerraTalhada = isNearSerraTalhada(location.latitude, location.longitude);
+  const failedAt = lastFailureAt.get(coordKey);
+  const recentlyFailed =
+    failedAt !== undefined && Date.now() - failedAt < OFFLINE_RETRY_AFTER_MS;
+
+  const years = nearSerraTalhada && recentlyFailed ? null : await loadYearSeries(location);
+
+  if (years) {
+    lastFailureAt.delete(coordKey);
+    const result = buildProjectionFromYears(location, years, scenario);
+    projectionCache.set(cacheKey, result);
+    return result;
+  }
+
+  if (!recentlyFailed) lastFailureAt.set(coordKey, Date.now());
+
+  if (!nearSerraTalhada) {
     throw new Error(PROJECTION_ERROR_MESSAGE);
   }
 
-  const result = buildProjectionFromYears(location, years, scenario);
-  projectionCache.set(cacheKey, result);
-  return result;
+  // Sem cache: quando a rede voltar, a próxima consulta busca os dados online.
+  return buildProjectionFromYears(location, embeddedSerraTalhadaYears(), scenario, [
+    OFFLINE_FALLBACK_NOTE,
+  ]);
+}
+
+/** Só para scripts de verificação: esquece caches e falhas anteriores. */
+export function resetProjectionCache() {
+  yearsCache.clear();
+  projectionCache.clear();
+  lastFailureAt.clear();
 }
 
 /**
