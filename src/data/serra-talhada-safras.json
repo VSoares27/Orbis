@@ -1,0 +1,968 @@
+{
+ "meta": {
+  "place": "Serra Talhada",
+  "state": "PE",
+  "lat": -7.988,
+  "lon": -38.2963,
+  "source": "NASA POWER, daily, community AG (power.larc.nasa.gov)",
+  "period": [
+   1985,
+   2024
+  ],
+  "method": "Rainfall during the crop cycle vs crop water demand (Hargreaves ETo x FAO-56 Kc). See METHODOLOGY.md.",
+  "thresholds": {
+   "sufficient_min_ratio": 1.0,
+   "tight_min_ratio": 0.7,
+   "note": "Razão chuva/necessidade no ciclo. 1,0 = a chuva cobriu toda a necessidade. O limite de 0,7 para 'apertado' é uma SUPOSIÇÃO do time: declare isso na metodologia ou troque por um valor com fonte."
+  },
+  "limitations": [
+   "Gridded data (~0.5 degree), not a field measurement.",
+   "Does not account for soil water storage, irrigation, cisterns or runoff.",
+   "Total rainfall is compared with demand; rainfall timing within the cycle is not modeled."
+  ],
+  "classes": {
+   "suficiente": "Choveu o bastante",
+   "apertado": "Ficou apertado",
+   "insuficiente": "Faltou chuva"
+  },
+  "note": "Resumo de output/serra-talhada.json (orbis-analysis). Cada contagem é o número de safras em cada classe na janela indicada."
+ },
+ "crops": {
+  "milho": {
+   "label": "Milho",
+   "reference": {
+    "variant": "normal",
+    "variantLabel": "Ciclo normal (cerca de 140 dias)",
+    "planting": "01-21",
+    "isReference": true,
+    "last10": {
+     "suficiente": 1,
+     "apertado": 1,
+     "insuficiente": 8,
+     "total": 10,
+     "from": 2015,
+     "to": 2024
+    },
+    "last40": {
+     "suficiente": 11,
+     "apertado": 11,
+     "insuficiente": 18,
+     "total": 40,
+     "from": 1985,
+     "to": 2024
+    }
+   },
+   "best": {
+    "variant": "normal",
+    "variantLabel": "Ciclo normal (cerca de 140 dias)",
+    "planting": "02-11",
+    "last10": {
+     "suficiente": 1,
+     "apertado": 4,
+     "insuficiente": 5,
+     "total": 10,
+     "from": 2015,
+     "to": 2024
+    },
+    "last40": {
+     "suficiente": 12,
+     "apertado": 11,
+     "insuficiente": 17,
+     "total": 40,
+     "from": 1985,
+     "to": 2024
+    }
+   },
+   "options": [
+    {
+     "variant": "normal",
+     "variantLabel": "Ciclo normal (cerca de 140 dias)",
+     "planting": "01-01",
+     "isReference": false,
+     "last10": {
+      "suficiente": 0,
+      "apertado": 2,
+      "insuficiente": 8,
+      "total": 10,
+      "from": 2015,
+      "to": 2024
+     },
+     "last40": {
+      "suficiente": 8,
+      "apertado": 12,
+      "insuficiente": 20,
+      "total": 40,
+      "from": 1985,
+      "to": 2024
+     }
+    },
+    {
+     "variant": "normal",
+     "variantLabel": "Ciclo normal (cerca de 140 dias)",
+     "planting": "01-11",
+     "isReference": false,
+     "last10": {
+      "suficiente": 1,
+      "apertado": 1,
+      "insuficiente": 8,
+      "total": 10,
+      "from": 2015,
+      "to": 2024
+     },
+     "last40": {
+      "suficiente": 10,
+      "apertado": 12,
+      "insuficiente": 18,
+      "total": 40,
+      "from": 1985,
+      "to": 2024
+     }
+    },
+    {
+     "variant": "normal",
+     "variantLabel": "Ciclo normal (cerca de 140 dias)",
+     "planting": "01-21",
+     "isReference": true,
+     "last10": {
+      "suficiente": 1,
+      "apertado": 1,
+      "insuficiente": 8,
+      "total": 10,
+      "from": 2015,
+      "to": 2024
+     },
+     "last40": {
+      "suficiente": 11,
+      "apertado": 11,
+      "insuficiente": 18,
+      "total": 40,
+      "from": 1985,
+      "to": 2024
+     }
+    },
+    {
+     "variant": "normal",
+     "variantLabel": "Ciclo normal (cerca de 140 dias)",
+     "planting": "02-01",
+     "isReference": false,
+     "last10": {
+      "suficiente": 1,
+      "apertado": 2,
+      "insuficiente": 7,
+      "total": 10,
+      "from": 2015,
+      "to": 2024
+     },
+     "last40": {
+      "suficiente": 11,
+      "apertado": 9,
+      "insuficiente": 20,
+      "total": 40,
+      "from": 1985,
+      "to": 2024
+     }
+    },
+    {
+     "variant": "normal",
+     "variantLabel": "Ciclo normal (cerca de 140 dias)",
+     "planting": "02-11",
+     "isReference": false,
+     "last10": {
+      "suficiente": 1,
+      "apertado": 4,
+      "insuficiente": 5,
+      "total": 10,
+      "from": 2015,
+      "to": 2024
+     },
+     "last40": {
+      "suficiente": 12,
+      "apertado": 11,
+      "insuficiente": 17,
+      "total": 40,
+      "from": 1985,
+      "to": 2024
+     }
+    },
+    {
+     "variant": "normal",
+     "variantLabel": "Ciclo normal (cerca de 140 dias)",
+     "planting": "02-21",
+     "isReference": false,
+     "last10": {
+      "suficiente": 1,
+      "apertado": 2,
+      "insuficiente": 7,
+      "total": 10,
+      "from": 2015,
+      "to": 2024
+     },
+     "last40": {
+      "suficiente": 9,
+      "apertado": 12,
+      "insuficiente": 19,
+      "total": 40,
+      "from": 1985,
+      "to": 2024
+     }
+    },
+    {
+     "variant": "normal",
+     "variantLabel": "Ciclo normal (cerca de 140 dias)",
+     "planting": "03-01",
+     "isReference": false,
+     "last10": {
+      "suficiente": 0,
+      "apertado": 2,
+      "insuficiente": 8,
+      "total": 10,
+      "from": 2015,
+      "to": 2024
+     },
+     "last40": {
+      "suficiente": 7,
+      "apertado": 11,
+      "insuficiente": 22,
+      "total": 40,
+      "from": 1985,
+      "to": 2024
+     }
+    },
+    {
+     "variant": "normal",
+     "variantLabel": "Ciclo normal (cerca de 140 dias)",
+     "planting": "03-11",
+     "isReference": false,
+     "last10": {
+      "suficiente": 0,
+      "apertado": 2,
+      "insuficiente": 8,
+      "total": 10,
+      "from": 2015,
+      "to": 2024
+     },
+     "last40": {
+      "suficiente": 5,
+      "apertado": 11,
+      "insuficiente": 24,
+      "total": 40,
+      "from": 1985,
+      "to": 2024
+     }
+    },
+    {
+     "variant": "normal",
+     "variantLabel": "Ciclo normal (cerca de 140 dias)",
+     "planting": "03-21",
+     "isReference": false,
+     "last10": {
+      "suficiente": 0,
+      "apertado": 2,
+      "insuficiente": 8,
+      "total": 10,
+      "from": 2015,
+      "to": 2024
+     },
+     "last40": {
+      "suficiente": 5,
+      "apertado": 10,
+      "insuficiente": 25,
+      "total": 40,
+      "from": 1985,
+      "to": 2024
+     }
+    },
+    {
+     "variant": "precoce",
+     "variantLabel": "Precoce (cerca de 100 dias)",
+     "planting": "01-01",
+     "isReference": false,
+     "last10": {
+      "suficiente": 1,
+      "apertado": 3,
+      "insuficiente": 6,
+      "total": 10,
+      "from": 2015,
+      "to": 2024
+     },
+     "last40": {
+      "suficiente": 9,
+      "apertado": 14,
+      "insuficiente": 17,
+      "total": 40,
+      "from": 1985,
+      "to": 2024
+     }
+    },
+    {
+     "variant": "precoce",
+     "variantLabel": "Precoce (cerca de 100 dias)",
+     "planting": "01-11",
+     "isReference": false,
+     "last10": {
+      "suficiente": 2,
+      "apertado": 1,
+      "insuficiente": 7,
+      "total": 10,
+      "from": 2015,
+      "to": 2024
+     },
+     "last40": {
+      "suficiente": 11,
+      "apertado": 11,
+      "insuficiente": 18,
+      "total": 40,
+      "from": 1985,
+      "to": 2024
+     }
+    },
+    {
+     "variant": "precoce",
+     "variantLabel": "Precoce (cerca de 100 dias)",
+     "planting": "01-21",
+     "isReference": false,
+     "last10": {
+      "suficiente": 2,
+      "apertado": 2,
+      "insuficiente": 6,
+      "total": 10,
+      "from": 2015,
+      "to": 2024
+     },
+     "last40": {
+      "suficiente": 14,
+      "apertado": 10,
+      "insuficiente": 16,
+      "total": 40,
+      "from": 1985,
+      "to": 2024
+     }
+    },
+    {
+     "variant": "precoce",
+     "variantLabel": "Precoce (cerca de 100 dias)",
+     "planting": "02-01",
+     "isReference": false,
+     "last10": {
+      "suficiente": 2,
+      "apertado": 2,
+      "insuficiente": 6,
+      "total": 10,
+      "from": 2015,
+      "to": 2024
+     },
+     "last40": {
+      "suficiente": 13,
+      "apertado": 10,
+      "insuficiente": 17,
+      "total": 40,
+      "from": 1985,
+      "to": 2024
+     }
+    },
+    {
+     "variant": "precoce",
+     "variantLabel": "Precoce (cerca de 100 dias)",
+     "planting": "02-11",
+     "isReference": false,
+     "last10": {
+      "suficiente": 2,
+      "apertado": 2,
+      "insuficiente": 6,
+      "total": 10,
+      "from": 2015,
+      "to": 2024
+     },
+     "last40": {
+      "suficiente": 13,
+      "apertado": 9,
+      "insuficiente": 18,
+      "total": 40,
+      "from": 1985,
+      "to": 2024
+     }
+    },
+    {
+     "variant": "precoce",
+     "variantLabel": "Precoce (cerca de 100 dias)",
+     "planting": "02-21",
+     "isReference": false,
+     "last10": {
+      "suficiente": 1,
+      "apertado": 4,
+      "insuficiente": 5,
+      "total": 10,
+      "from": 2015,
+      "to": 2024
+     },
+     "last40": {
+      "suficiente": 12,
+      "apertado": 10,
+      "insuficiente": 18,
+      "total": 40,
+      "from": 1985,
+      "to": 2024
+     }
+    },
+    {
+     "variant": "precoce",
+     "variantLabel": "Precoce (cerca de 100 dias)",
+     "planting": "03-01",
+     "isReference": false,
+     "last10": {
+      "suficiente": 1,
+      "apertado": 2,
+      "insuficiente": 7,
+      "total": 10,
+      "from": 2015,
+      "to": 2024
+     },
+     "last40": {
+      "suficiente": 11,
+      "apertado": 9,
+      "insuficiente": 20,
+      "total": 40,
+      "from": 1985,
+      "to": 2024
+     }
+    },
+    {
+     "variant": "precoce",
+     "variantLabel": "Precoce (cerca de 100 dias)",
+     "planting": "03-11",
+     "isReference": false,
+     "last10": {
+      "suficiente": 1,
+      "apertado": 3,
+      "insuficiente": 6,
+      "total": 10,
+      "from": 2015,
+      "to": 2024
+     },
+     "last40": {
+      "suficiente": 12,
+      "apertado": 8,
+      "insuficiente": 20,
+      "total": 40,
+      "from": 1985,
+      "to": 2024
+     }
+    },
+    {
+     "variant": "precoce",
+     "variantLabel": "Precoce (cerca de 100 dias)",
+     "planting": "03-21",
+     "isReference": false,
+     "last10": {
+      "suficiente": 0,
+      "apertado": 3,
+      "insuficiente": 7,
+      "total": 10,
+      "from": 2015,
+      "to": 2024
+     },
+     "last40": {
+      "suficiente": 10,
+      "apertado": 8,
+      "insuficiente": 22,
+      "total": 40,
+      "from": 1985,
+      "to": 2024
+     }
+    }
+   ]
+  },
+  "feijao": {
+   "label": "Feijão-caupi",
+   "reference": {
+    "variant": "padrao",
+    "variantLabel": "Ciclo de referência",
+    "planting": "01-21",
+    "isReference": true,
+    "last10": {
+     "suficiente": 2,
+     "apertado": 2,
+     "insuficiente": 6,
+     "total": 10,
+     "from": 2015,
+     "to": 2024
+    },
+    "last40": {
+     "suficiente": 15,
+     "apertado": 9,
+     "insuficiente": 16,
+     "total": 40,
+     "from": 1985,
+     "to": 2024
+    }
+   },
+   "best": {
+    "variant": "padrao",
+    "variantLabel": "Ciclo de referência",
+    "planting": "02-21",
+    "last10": {
+     "suficiente": 1,
+     "apertado": 4,
+     "insuficiente": 5,
+     "total": 10,
+     "from": 2015,
+     "to": 2024
+    },
+    "last40": {
+     "suficiente": 13,
+     "apertado": 9,
+     "insuficiente": 18,
+     "total": 40,
+     "from": 1985,
+     "to": 2024
+    }
+   },
+   "options": [
+    {
+     "variant": "padrao",
+     "variantLabel": "Ciclo de referência",
+     "planting": "01-01",
+     "isReference": false,
+     "last10": {
+      "suficiente": 1,
+      "apertado": 3,
+      "insuficiente": 6,
+      "total": 10,
+      "from": 2015,
+      "to": 2024
+     },
+     "last40": {
+      "suficiente": 8,
+      "apertado": 13,
+      "insuficiente": 19,
+      "total": 40,
+      "from": 1985,
+      "to": 2024
+     }
+    },
+    {
+     "variant": "padrao",
+     "variantLabel": "Ciclo de referência",
+     "planting": "01-11",
+     "isReference": false,
+     "last10": {
+      "suficiente": 2,
+      "apertado": 1,
+      "insuficiente": 7,
+      "total": 10,
+      "from": 2015,
+      "to": 2024
+     },
+     "last40": {
+      "suficiente": 12,
+      "apertado": 12,
+      "insuficiente": 16,
+      "total": 40,
+      "from": 1985,
+      "to": 2024
+     }
+    },
+    {
+     "variant": "padrao",
+     "variantLabel": "Ciclo de referência",
+     "planting": "01-21",
+     "isReference": true,
+     "last10": {
+      "suficiente": 2,
+      "apertado": 2,
+      "insuficiente": 6,
+      "total": 10,
+      "from": 2015,
+      "to": 2024
+     },
+     "last40": {
+      "suficiente": 15,
+      "apertado": 9,
+      "insuficiente": 16,
+      "total": 40,
+      "from": 1985,
+      "to": 2024
+     }
+    },
+    {
+     "variant": "padrao",
+     "variantLabel": "Ciclo de referência",
+     "planting": "02-01",
+     "isReference": false,
+     "last10": {
+      "suficiente": 2,
+      "apertado": 2,
+      "insuficiente": 6,
+      "total": 10,
+      "from": 2015,
+      "to": 2024
+     },
+     "last40": {
+      "suficiente": 15,
+      "apertado": 9,
+      "insuficiente": 16,
+      "total": 40,
+      "from": 1985,
+      "to": 2024
+     }
+    },
+    {
+     "variant": "padrao",
+     "variantLabel": "Ciclo de referência",
+     "planting": "02-11",
+     "isReference": false,
+     "last10": {
+      "suficiente": 2,
+      "apertado": 2,
+      "insuficiente": 6,
+      "total": 10,
+      "from": 2015,
+      "to": 2024
+     },
+     "last40": {
+      "suficiente": 13,
+      "apertado": 11,
+      "insuficiente": 16,
+      "total": 40,
+      "from": 1985,
+      "to": 2024
+     }
+    },
+    {
+     "variant": "padrao",
+     "variantLabel": "Ciclo de referência",
+     "planting": "02-21",
+     "isReference": false,
+     "last10": {
+      "suficiente": 1,
+      "apertado": 4,
+      "insuficiente": 5,
+      "total": 10,
+      "from": 2015,
+      "to": 2024
+     },
+     "last40": {
+      "suficiente": 13,
+      "apertado": 9,
+      "insuficiente": 18,
+      "total": 40,
+      "from": 1985,
+      "to": 2024
+     }
+    },
+    {
+     "variant": "padrao",
+     "variantLabel": "Ciclo de referência",
+     "planting": "03-01",
+     "isReference": false,
+     "last10": {
+      "suficiente": 1,
+      "apertado": 4,
+      "insuficiente": 5,
+      "total": 10,
+      "from": 2015,
+      "to": 2024
+     },
+     "last40": {
+      "suficiente": 13,
+      "apertado": 9,
+      "insuficiente": 18,
+      "total": 40,
+      "from": 1985,
+      "to": 2024
+     }
+    },
+    {
+     "variant": "padrao",
+     "variantLabel": "Ciclo de referência",
+     "planting": "03-11",
+     "isReference": false,
+     "last10": {
+      "suficiente": 1,
+      "apertado": 3,
+      "insuficiente": 6,
+      "total": 10,
+      "from": 2015,
+      "to": 2024
+     },
+     "last40": {
+      "suficiente": 14,
+      "apertado": 7,
+      "insuficiente": 19,
+      "total": 40,
+      "from": 1985,
+      "to": 2024
+     }
+    },
+    {
+     "variant": "padrao",
+     "variantLabel": "Ciclo de referência",
+     "planting": "03-21",
+     "isReference": false,
+     "last10": {
+      "suficiente": 1,
+      "apertado": 2,
+      "insuficiente": 7,
+      "total": 10,
+      "from": 2015,
+      "to": 2024
+     },
+     "last40": {
+      "suficiente": 13,
+      "apertado": 5,
+      "insuficiente": 22,
+      "total": 40,
+      "from": 1985,
+      "to": 2024
+     }
+    }
+   ]
+  },
+  "mandioca": {
+   "label": "Mandioca",
+   "reference": {
+    "variant": "padrao",
+    "variantLabel": "Ciclo de referência",
+    "planting": "01-11",
+    "isReference": true,
+    "last10": {
+     "suficiente": 1,
+     "apertado": 4,
+     "insuficiente": 5,
+     "total": 10,
+     "from": 2015,
+     "to": 2024
+    },
+    "last40": {
+     "suficiente": 11,
+     "apertado": 14,
+     "insuficiente": 15,
+     "total": 40,
+     "from": 1985,
+     "to": 2024
+    }
+   },
+   "best": {
+    "variant": "padrao",
+    "variantLabel": "Ciclo de referência",
+    "planting": "01-21",
+    "last10": {
+     "suficiente": 1,
+     "apertado": 4,
+     "insuficiente": 5,
+     "total": 10,
+     "from": 2015,
+     "to": 2024
+    },
+    "last40": {
+     "suficiente": 12,
+     "apertado": 13,
+     "insuficiente": 15,
+     "total": 40,
+     "from": 1985,
+     "to": 2024
+    }
+   },
+   "options": [
+    {
+     "variant": "padrao",
+     "variantLabel": "Ciclo de referência",
+     "planting": "01-01",
+     "isReference": false,
+     "last10": {
+      "suficiente": 1,
+      "apertado": 4,
+      "insuficiente": 5,
+      "total": 10,
+      "from": 2015,
+      "to": 2024
+     },
+     "last40": {
+      "suficiente": 10,
+      "apertado": 16,
+      "insuficiente": 14,
+      "total": 40,
+      "from": 1985,
+      "to": 2024
+     }
+    },
+    {
+     "variant": "padrao",
+     "variantLabel": "Ciclo de referência",
+     "planting": "01-11",
+     "isReference": true,
+     "last10": {
+      "suficiente": 1,
+      "apertado": 4,
+      "insuficiente": 5,
+      "total": 10,
+      "from": 2015,
+      "to": 2024
+     },
+     "last40": {
+      "suficiente": 11,
+      "apertado": 14,
+      "insuficiente": 15,
+      "total": 40,
+      "from": 1985,
+      "to": 2024
+     }
+    },
+    {
+     "variant": "padrao",
+     "variantLabel": "Ciclo de referência",
+     "planting": "01-21",
+     "isReference": false,
+     "last10": {
+      "suficiente": 1,
+      "apertado": 4,
+      "insuficiente": 5,
+      "total": 10,
+      "from": 2015,
+      "to": 2024
+     },
+     "last40": {
+      "suficiente": 12,
+      "apertado": 13,
+      "insuficiente": 15,
+      "total": 40,
+      "from": 1985,
+      "to": 2024
+     }
+    },
+    {
+     "variant": "padrao",
+     "variantLabel": "Ciclo de referência",
+     "planting": "02-01",
+     "isReference": false,
+     "last10": {
+      "suficiente": 1,
+      "apertado": 4,
+      "insuficiente": 5,
+      "total": 10,
+      "from": 2015,
+      "to": 2024
+     },
+     "last40": {
+      "suficiente": 11,
+      "apertado": 13,
+      "insuficiente": 16,
+      "total": 40,
+      "from": 1985,
+      "to": 2024
+     }
+    },
+    {
+     "variant": "padrao",
+     "variantLabel": "Ciclo de referência",
+     "planting": "02-11",
+     "isReference": false,
+     "last10": {
+      "suficiente": 0,
+      "apertado": 4,
+      "insuficiente": 6,
+      "total": 10,
+      "from": 2015,
+      "to": 2024
+     },
+     "last40": {
+      "suficiente": 8,
+      "apertado": 14,
+      "insuficiente": 18,
+      "total": 40,
+      "from": 1985,
+      "to": 2024
+     }
+    },
+    {
+     "variant": "padrao",
+     "variantLabel": "Ciclo de referência",
+     "planting": "02-21",
+     "isReference": false,
+     "last10": {
+      "suficiente": 0,
+      "apertado": 2,
+      "insuficiente": 8,
+      "total": 10,
+      "from": 2015,
+      "to": 2024
+     },
+     "last40": {
+      "suficiente": 6,
+      "apertado": 13,
+      "insuficiente": 21,
+      "total": 40,
+      "from": 1985,
+      "to": 2024
+     }
+    },
+    {
+     "variant": "padrao",
+     "variantLabel": "Ciclo de referência",
+     "planting": "03-01",
+     "isReference": false,
+     "last10": {
+      "suficiente": 0,
+      "apertado": 2,
+      "insuficiente": 8,
+      "total": 10,
+      "from": 2015,
+      "to": 2024
+     },
+     "last40": {
+      "suficiente": 5,
+      "apertado": 11,
+      "insuficiente": 24,
+      "total": 40,
+      "from": 1985,
+      "to": 2024
+     }
+    },
+    {
+     "variant": "padrao",
+     "variantLabel": "Ciclo de referência",
+     "planting": "03-11",
+     "isReference": false,
+     "last10": {
+      "suficiente": 0,
+      "apertado": 2,
+      "insuficiente": 8,
+      "total": 10,
+      "from": 2015,
+      "to": 2024
+     },
+     "last40": {
+      "suficiente": 5,
+      "apertado": 8,
+      "insuficiente": 27,
+      "total": 40,
+      "from": 1985,
+      "to": 2024
+     }
+    },
+    {
+     "variant": "padrao",
+     "variantLabel": "Ciclo de referência",
+     "planting": "03-21",
+     "isReference": false,
+     "last10": {
+      "suficiente": 0,
+      "apertado": 0,
+      "insuficiente": 10,
+      "total": 10,
+      "from": 2015,
+      "to": 2024
+     },
+     "last40": {
+      "suficiente": 4,
+      "apertado": 5,
+      "insuficiente": 31,
+      "total": 40,
+      "from": 1985,
+      "to": 2024
+     }
+    }
+   ]
+  }
+ }
+}
