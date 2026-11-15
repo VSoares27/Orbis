@@ -7,6 +7,7 @@
  *
  * Sem GPS (permissão negada ou erro), `location` recebe `DEFAULT_LOCATION`
  * (Serra Talhada, PE), mas `status` e `error` continuam informando o problema.
+ * Se o pedido de permissão ficar 8 s sem resposta, também usa o local padrão.
  * Se o GPS responder depois, a localização real substitui a padrão.
  */
 
@@ -35,6 +36,12 @@ export const DEFAULT_LOCATION: FarmLocation = {
   latitude: -7.988,
   longitude: -38.2963,
 };
+
+/**
+ * Se o pedido de permissão ficar sem resposta (ex.: aviso do navegador ignorado),
+ * usa o local padrão depois deste tempo. O GPS real substitui quando responder.
+ */
+const LOCATION_WAIT_MS = 8_000;
 
 /** Mantém a última posição real, se houver; senão usa o local padrão. */
 function keepOrDefault(current: FarmLocation | null) {
@@ -230,7 +237,11 @@ export function DeviceLocationProvider({ children }: { children: ReactNode }) {
     if (bootstrapped.current) return;
     bootstrapped.current = true;
 
-    void refreshLocation();
+    const waitTimer = setTimeout(() => {
+      if (mounted.current) setLocation(keepOrDefault);
+    }, LOCATION_WAIT_MS);
+
+    void refreshLocation().finally(() => clearTimeout(waitTimer));
   }, [refreshLocation]);
 
   // Revalida automaticamente quando o usuário volta das Configurações do aparelho
