@@ -121,7 +121,7 @@ function handleValueChange(_event: unknown, selected?: Date) {
 
       {/* Data pretendida + Condição do clima */}
       <View style={styles.rowInputs}>
-        <View style={[styles.field, { flex: 1 }]}>
+        <View style={styles.field}>
           <AppText variant="label" tone="secondary">
             2. Quando vai plantar?
           </AppText>
@@ -135,7 +135,7 @@ function handleValueChange(_event: unknown, selected?: Date) {
           </Pressable>
         </View>
 
-        <View style={[styles.field, { flex: 1.3 }]}>
+        <View style={styles.field}>
           <AppText variant="label" tone="secondary">
             3. Como estará o ano?
           </AppText>
@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
   container: { gap: Spacing.three },
   field: { gap: 6 },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  rowInputs: { flexDirection: 'row', gap: Spacing.two },
+  rowInputs: { gap: Spacing.three },
   chip: {
     paddingVertical: 6,
     paddingHorizontal: 12,
@@ -303,6 +303,8 @@ const styles = StyleSheet.create({
     borderColor: Brand.green,
   },
   dateButton: {
+    alignSelf: 'flex-start',
+    minHeight: 44,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,

@@ -2,11 +2,12 @@ import { type Href } from 'expo-router';
 import { Tabs, TabList, TabSlot, TabTrigger, type TabTriggerSlotProps } from 'expo-router/ui';
 import { forwardRef, type ElementRef } from 'react';
 import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from './ui/icon';
 import { AppText } from './ui/text';
 
-import { Brand, Radii, Shadows, Spacing } from '@/constants/theme';
+import { Brand, PhoneFrameWidth, Radii, Shadows, Spacing } from '@/constants/theme';
 import type { IconName } from '@/types';
 
 type TabItem = {
@@ -23,12 +24,8 @@ const tabs: TabItem[] = [
   { name: 'caderneta', href: '/caderneta', label: 'Caderneta', icon: 'notebook-outline' },
 ];
 
-/** Largura do "celular" quando o app é aberto num navegador largo. */
-const PHONE_WIDTH = 430;
-/** Acima desta largura de janela, o app aparece dentro da moldura. */
+/** Acima desta largura de janela, o app aparece dentro da moldura de celular. */
 const FRAME_BREAKPOINT = 520;
-/** Abaixo desta largura, as abas ficam mais compactas para caber. */
-const COMPACT_TABS_BREAKPOINT = 400;
 
 /**
  * Layout de abas para web (a barra nativa não existe no navegador).
@@ -36,24 +33,25 @@ const COMPACT_TABS_BREAKPOINT = 400;
  *
  * O Orbis é mobile-first: num navegador largo (computador), o app aparece numa
  * coluna com largura de celular, centralizada; num celular, ocupa a tela toda.
+ * As abas seguem o padrão de celular (ícone sobre o texto) e respeitam a área
+ * segura de baixo (barra de gestos do iPhone).
  */
 export default function AppTabsWeb() {
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const framed = width > FRAME_BREAKPOINT;
-  const compact = Math.min(width, PHONE_WIDTH) < COMPACT_TABS_BREAKPOINT;
 
   return (
     <View style={[styles.backdrop, framed && styles.backdropFramed]}>
       <View style={[styles.device, framed && styles.deviceFramed]}>
         <Tabs style={styles.root}>
           <TabSlot style={styles.slot} />
-          <TabList style={styles.tabList}>
+          <TabList
+            style={[styles.tabList, { paddingBottom: Spacing.two + (framed ? 0 : insets.bottom) }]}>
             <View style={styles.tabBar}>
               {tabs.map((tab) => (
                 <TabTrigger key={tab.name} name={tab.name} href={tab.href} asChild>
-                  <WebTabButton icon={tab.icon} compact={compact}>
-                    {tab.label}
-                  </WebTabButton>
+                  <WebTabButton icon={tab.icon}>{tab.label}</WebTabButton>
                 </TabTrigger>
               ))}
             </View>
@@ -68,25 +66,18 @@ export default function AppTabsWeb() {
  * `asChild` exige que o componente aceite e encaminhe `ref`.
  * Por isso usamos forwardRef em volta do Pressable.
  */
-const WebTabButton = forwardRef<
-  ElementRef<typeof Pressable>,
-  TabTriggerSlotProps & { icon: IconName; compact?: boolean }
->(
-  function WebTabButton({ children, isFocused, icon, compact, style, ...props }, ref) {
+const WebTabButton = forwardRef<ElementRef<typeof Pressable>, TabTriggerSlotProps & { icon: IconName }>(
+  function WebTabButton({ children, isFocused, icon, style, ...props }, ref) {
     return (
       <Pressable
         ref={ref}
         {...props}
         style={({ pressed }) => [
           styles.tab,
-          compact && styles.tabCompact,
+          isFocused && styles.tabFocused,
           pressed && styles.pressed,
         ]}>
-        <Icon
-          name={icon}
-          size={compact ? 18 : 20}
-          color={isFocused ? Brand.green : Brand.textMuted}
-        />
+        <Icon name={icon} size={20} color={isFocused ? Brand.green : Brand.textMuted} />
         <AppText
           variant="caption"
           tone={isFocused ? 'brand' : 'muted'}
@@ -115,7 +106,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   deviceFramed: {
-    maxWidth: PHONE_WIDTH,
+    maxWidth: PhoneFrameWidth,
     borderRadius: 28,
     borderWidth: 1,
     borderColor: Brand.border,
@@ -135,9 +126,9 @@ const styles = StyleSheet.create({
   },
   tabBar: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     gap: Spacing.one,
-    alignSelf: 'center',
+    width: '100%',
     backgroundColor: Brand.surface,
     borderRadius: Radii.pill,
     borderWidth: 1,
@@ -146,18 +137,16 @@ const styles = StyleSheet.create({
     ...Shadows.floating,
   },
   tab: {
-    flexDirection: 'row',
+    flex: 1,
     alignItems: 'center',
-    gap: 6,
-    paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.three,
+    gap: 2,
+    minHeight: 48,
+    paddingVertical: 6,
+    paddingHorizontal: Spacing.one,
     borderRadius: Radii.pill,
   },
-  tabCompact: {
-    flexDirection: 'column',
-    gap: 2,
-    paddingVertical: 6,
-    paddingHorizontal: Spacing.two,
+  tabFocused: {
+    backgroundColor: Brand.greenSoft,
   },
   labelFocused: {
     fontWeight: '700',

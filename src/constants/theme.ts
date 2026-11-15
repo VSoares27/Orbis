@@ -137,6 +137,8 @@ export const Shadows = {
 
 export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
 export const MaxContentWidth = 720;
+/** Largura de celular: moldura do app na web e largura máxima das folhas (sheets). */
+export const PhoneFrameWidth = 430;
 
 /** Gradientes reutilizáveis (propriedade experimental suportada no RN 0.88). */
 export const Gradients = {
