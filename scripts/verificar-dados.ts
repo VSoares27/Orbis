@@ -124,6 +124,33 @@ async function main() {
     'Melhor data 11/02 (faltou em 5)',
   );
 
+  // Nota segue o histórico real (Serra Talhada, fora do cenário Mais chuva)
+  check(
+    normalSim.selectedWindow.score <= 49 && normalSim.selectedWindow.status === 'risco',
+    'Milho 21/01 (8 de 10 com falta de chuva): nota até 49 e "risco"',
+    `nota ${normalSim.selectedWindow.score} (${normalSim.selectedWindow.status})`,
+  );
+  check(
+    normalSim.bestWindow.startMonth === 2 && normalSim.bestWindow.score <= 74,
+    'Melhor época do milho em fevereiro, com nota até 74',
+    `${normalSim.bestWindow.startMonthLabel} ${normalSim.bestWindow.score}`,
+  );
+  const wetSim = simulatePlanting(
+    buildProjectionFromYears(SERRA_TALHADA, years, 'ssp126'),
+    'milho',
+    '21/01/2027',
+  );
+  const wetRecife = simulatePlanting(
+    buildProjectionFromYears(RECIFE, years, 'ssp126'),
+    'milho',
+    '21/01/2027',
+  );
+  check(
+    wetSim.selectedWindow.score === wetRecife.selectedWindow.score,
+    'No cenário Mais chuva a nota não recebe teto do histórico',
+    `nota ${wetSim.selectedWindow.score}`,
+  );
+
   // 4. Soja não tem dado de safra
   console.log('\n4. simulatePlanting — soja, 21/01/2027, Normal');
   const sojaTexts = simulatePlanting(normal, 'soja', '21/01/2027').selectedWindow.recommendations;
@@ -136,10 +163,22 @@ async function main() {
   // Extra: fora de Serra Talhada nada muda
   console.log('\n5. Extras');
   const recife = buildProjectionFromYears(RECIFE, years, 'ssp245');
-  const recifeTexts = simulatePlanting(recife, 'milho', '21/01/2027').selectedWindow.recommendations;
+  const recifeSim = simulatePlanting(recife, 'milho', '21/01/2027');
+  const recifeTexts = recifeSim.selectedWindow.recommendations;
   check(
     !recifeTexts.some((text) => text.includes('Serra Talhada')),
     'Fora de Serra Talhada (Recife) sem frase de safra',
+  );
+  check(
+    recifeSim.selectedWindow.score > 49,
+    'Fora de Serra Talhada a nota segue a regra original',
+    `nota ${recifeSim.selectedWindow.score}`,
+  );
+  const sojaSim = simulatePlanting(normal, 'soja', '21/01/2027');
+  check(
+    sojaSim.selectedWindow.score === recifeSim.selectedWindow.score,
+    'Soja (sem dado de safra) não recebe teto em Serra Talhada',
+    `nota ${sojaSim.selectedWindow.score}`,
   );
 
   // Extra: T2 — rede bloqueada

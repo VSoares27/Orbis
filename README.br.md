@@ -46,7 +46,11 @@ O app avalia **as 12 janelas de plantio possíveis** (um início em cada mês), 
 - **recomendações práticas** em linguagem simples (ex.: preparar irrigação, cuidar do escoamento, usar palhada para segurar a umidade);
 - na região de Serra Talhada (PE), o **resultado real das últimas safras** para a cultura e a data escolhidas (veja [Análise das safras de Serra Talhada](#-análise-das-safras-de-serra-talhada)).
 
-A nota parte de 100 e perde pontos quando a chuva prevista para o ciclo fica abaixo ou acima da faixa ideal da cultura, ou quando a temperatura média sai da faixa ideal. Os parâmetros de cada cultura estão em [`src/lib/planting-simulator.ts`](./src/lib/planting-simulator.ts).
+A nota parte de 100 e perde pontos quando a chuva prevista para o ciclo fica abaixo ou acima da faixa ideal da cultura, ou quando a temperatura média sai da faixa ideal.
+
+Como a média esconde os anos ruins, na região de Serra Talhada a nota também respeita o **histórico real das últimas 10 safras** (milho, feijão-caupi e mandioca, nos cenários Normal e Mais seco): se faltou chuva em 6 ou mais delas, a nota fica em no máximo 49 ("Risco alto"); em 4 ou 5, no máximo 74 ("Atenção"). Nessa região, a "melhor época" é buscada só entre janeiro e março, os meses que a análise cobre. No cenário Mais chuva o teto não se aplica, porque ele simula justamente um ano chuvoso.
+
+Os parâmetros de cada cultura estão em [`src/lib/planting-simulator.ts`](./src/lib/planting-simulator.ts).
 
 ## 🛰️ Dados da NASA
 
@@ -148,7 +152,9 @@ Para conferir a camada de dados (sem internet), rode `npx tsx scripts/verificar-
 - Os dados diários da NASA POWER têm atraso de cerca de 3 dias: o "hoje" do app é o dia mais recente disponível.
 - Os cenários do simulador são médias de anos passados (1985–2024), não projeções do clima futuro.
 - A frase com o resultado das safras vale só para a região de Serra Talhada (até 0,75° do município) e para milho, feijão-caupi e mandioca.
-- A nota do simulador vem de faixas ideais simplificadas e pode discordar do resultado das safras (ex.: milho em 21/01 tem nota alta no cenário Normal, mas faltou chuva em 8 das últimas 10 safras). As duas informações aparecem lado a lado.
+- Na região de Serra Talhada, a nota recebe um teto pelo histórico real (veja o simulador acima). Os limites (6 ou mais faltas em 10 → até 49; 4 ou 5 → até 74) são uma escolha do time, não um valor publicado.
+- A radiação solar da NASA POWER chega com mais atraso que os outros dados. Quando o dia ainda não tem leitura, o app repete a leitura mais recente disponível.
+- Na web, as confirmações (ex.: excluir uma lavoura) usam a caixa de diálogo padrão do navegador.
 - A tela de Mercado usa dados fictícios e está desativada.
 
 ## 🗺️ Próximos passos

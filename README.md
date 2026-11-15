@@ -48,7 +48,11 @@ The app evaluates **all 12 possible planting windows** (one starting each month)
 - **practical recommendations** in plain language (e.g. prepare irrigation, manage drainage, use mulch to retain moisture);
 - in the Serra Talhada (PE) region, the **actual outcome of recent crop seasons** for the chosen crop and date (see [Serra Talhada crop-season analysis](#-serra-talhada-crop-season-analysis)).
 
-The score starts at 100 and loses points when projected cycle rainfall falls below or above the crop's ideal range, or when average temperature leaves its ideal range. Each crop's parameters live in [`src/lib/planting-simulator.ts`](./src/lib/planting-simulator.ts).
+The score starts at 100 and loses points when projected cycle rainfall falls below or above the crop's ideal range, or when average temperature leaves its ideal range.
+
+Because an average hides the bad years, in the Serra Talhada region the score also follows the **real record of the last 10 seasons** (maize, cowpea and cassava, in the Normal and Drier scenarios): if rain fell short in 6 or more of them, the score is capped at 49 ("high risk"); in 4 or 5, at 74 ("attention"). In that region the "best time to plant" is searched only between January and March, the months the analysis covers. The cap does not apply to the Wetter scenario, since it simulates a wet year.
+
+Each crop's parameters live in [`src/lib/planting-simulator.ts`](./src/lib/planting-simulator.ts).
 
 ## 🛰️ NASA data
 
@@ -150,7 +154,9 @@ To check the data layer (offline), run `npx tsx scripts/verificar-dados.ts`, or,
 - NASA POWER daily data lags by about 3 days: the app's "today" is the most recent day available.
 - Simulator scenarios are averages of past years (1985–2024), not projections of the future climate.
 - The crop-season sentence only applies to the Serra Talhada region (within 0.75° of the town) and to maize, cowpea and cassava.
-- The simulator score comes from simplified ideal ranges and may disagree with the crop-season result (e.g. maize on January 21 scores high in the Normal scenario, yet rain fell short in 8 of the last 10 seasons). Both are shown side by side.
+- In the Serra Talhada region, the score is capped by the real record (see the simulator above). The thresholds (6+ short seasons out of 10 → at most 49; 4 or 5 → at most 74) are a team choice, not a published value.
+- NASA POWER solar radiation arrives later than the other parameters. When a day has no reading yet, the app repeats the most recent available reading.
+- On the web, confirmations (e.g. deleting a crop) use the browser's standard dialog.
 - The Market screen uses fictional data and is disabled.
 
 ## 🗺️ Roadmap
