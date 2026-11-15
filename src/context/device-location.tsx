@@ -4,6 +4,10 @@
  * O provedor pede permissão de primeiro plano, obtém a posição atual (com fallback
  * para última posição conhecida) e traduz as coordenadas para cidade/estado.
  * O clima e as simulações usam somente esta localização.
+ *
+ * Sem GPS (permissão negada ou erro), `location` recebe `DEFAULT_LOCATION`
+ * (Serra Talhada, PE), mas `status` e `error` continuam informando o problema.
+ * Se o GPS responder depois, a localização real substitui a padrão.
  */
 
 import * as Location from 'expo-location';
@@ -22,6 +26,20 @@ import { AppState, Linking, Platform } from 'react-native';
 import type { FarmLocation } from '@/types';
 
 type DeviceLocationStatus = 'loading' | 'ready' | 'denied' | 'error';
+
+/** Local usado quando o aparelho não informa a posição (região da análise das safras). */
+export const DEFAULT_LOCATION: FarmLocation = {
+  label: 'Local padrão',
+  city: 'Serra Talhada',
+  state: 'PE',
+  latitude: -7.988,
+  longitude: -38.2963,
+};
+
+/** Mantém a última posição real, se houver; senão usa o local padrão. */
+function keepOrDefault(current: FarmLocation | null) {
+  return current ?? DEFAULT_LOCATION;
+}
 
 type DeviceLocationContextValue = {
   location: FarmLocation | null;
@@ -142,6 +160,7 @@ export function DeviceLocationProvider({ children }: { children: ReactNode }) {
       setCanAskAgain(permission.canAskAgain);
 
       if (!permission.granted) {
+        setLocation(keepOrDefault);
         setStatus('denied');
         setError(
           permission.canAskAgain
@@ -154,6 +173,7 @@ export function DeviceLocationProvider({ children }: { children: ReactNode }) {
       await fetchCoordinates();
     } catch (cause) {
       if (!mounted.current) return;
+      setLocation(keepOrDefault);
       setStatus('error');
       setError(
         cause instanceof Error
@@ -188,6 +208,7 @@ export function DeviceLocationProvider({ children }: { children: ReactNode }) {
       }
     } catch (cause) {
       if (!mounted.current) return;
+      setLocation(keepOrDefault);
       setStatus('error');
       setError(
         cause instanceof Error
