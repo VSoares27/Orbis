@@ -2,6 +2,7 @@
   "expo": {
     "name": "Orbis",
     "slug": "Orbis",
+    "owner": "joaomanoel01s-team",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -52,6 +53,11 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "f7cf1854-ccbd-4a60-abf3-25b3bd872adf"
+      }
     }
   }
 }
