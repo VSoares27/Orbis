@@ -1,4 +1,6 @@
+import safrasData from '@/data/serra-talhada-safras.json';
 import { MONTH_LABELS } from '@/lib/projection';
+import { isNearSerraTalhada } from '@/lib/serra-talhada';
 import type { ClimateProjection, MonthlyProjection } from '@/types';
 
 export type CropPresetId = 'milho' | 'feijao' | 'soja' | 'mandioca';
@@ -81,14 +83,28 @@ export function simulatePlanting(
   plantingDateInput: string,
 ): PlantingSimulationResult {
   const crop = CROP_PRESETS[cropId];
-  const selectedMonth = parsePlantingMonth(plantingDateInput);
+  const { day: selectedDay, month: selectedMonth } = parsePlantingDayMonth(plantingDateInput);
 
-  const allWindows = Array.from({ length: 12 }, (_, idx) =>
+  const evaluated = Array.from({ length: 12 }, (_, idx) =>
     evaluateMonthWindow(projection.months, crop, idx + 1),
   );
+  const baseSelected =
+    evaluated.find((w) => w.startMonth === selectedMonth) ?? evaluated[0];
+
+  // Resultado real das 40 safras de Serra Talhada: só acrescenta texto.
+  // A nota e o status continuam vindo da regra acima.
+  const harvestTexts = harvestRecommendations(projection, cropId, selectedDay, selectedMonth);
+  const allWindows =
+    harvestTexts.length === 0
+      ? evaluated
+      : evaluated.map((w) =>
+          w === baseSelected
+            ? { ...w, recommendations: [...w.recommendations, ...harvestTexts] }
+            : w,
+        );
 
   const selectedWindow =
-    allWindows.find((w) => w.startMonth === selectedMonth) ?? allWindows[0];
+    allWindows.find((w) => w.startMonth === baseSelected.startMonth) ?? allWindows[0];
 
   const bestWindow = [...allWindows].sort((a, b) => b.score - a.score)[0];
 
@@ -202,18 +218,142 @@ function evaluateMonthWindow(
   };
 }
 
-function parsePlantingMonth(input: string): number {
+export function parsePlantingMonth(input: string): number {
+  return parsePlantingDayMonth(input).month;
+}
+
+/**
+ * Lê dia e mês de "AAAA-MM-DD" ou "DD/MM[/AAAA]".
+ * Sem data válida, usa o dia de hoje (mesmo comportamento de antes para o mês).
+ */
+export function parsePlantingDayMonth(input: string): { day: number; month: number } {
   const clean = input.trim();
   if (/^\d{4}-\d{2}-\d{2}$/.test(clean)) {
     const m = Number(clean.slice(5, 7));
-    if (m >= 1 && m <= 12) return m;
+    const d = Number(clean.slice(8, 10));
+    if (m >= 1 && m <= 12) return { day: isDay(d) ? d : 1, month: m };
   }
   if (/^\d{1,2}\/\d{1,2}/.test(clean)) {
     const parts = clean.split('/');
+    const d = Number(parts[0]);
     const m = Number(parts[1]);
-    if (m >= 1 && m <= 12) return m;
+    if (m >= 1 && m <= 12) return { day: isDay(d) ? d : 1, month: m };
   }
-  return new Date().getMonth() + 1;
+  const today = new Date();
+  return { day: today.getDate(), month: today.getMonth() + 1 };
+}
+
+function isDay(value: number) {
+  return Number.isInteger(value) && value >= 1 && value <= 31;
+}
+
+// ---------------------------------------------------------------------------
+// Análise das 40 safras de Serra Talhada (src/data/serra-talhada-safras.json)
+// ---------------------------------------------------------------------------
+
+type HarvestCounts = {
+  suficiente: number;
+  apertado: number;
+  insuficiente: number;
+  total: number;
+  from: number;
+  to: number;
+};
+
+type HarvestOption = {
+  variant: string;
+  variantLabel: string;
+  /** "MM-DD". */
+  planting: string;
+  last10: HarvestCounts;
+};
+
+type HarvestCrop = {
+  label: string;
+  best: HarvestOption;
+  options: HarvestOption[];
+};
+
+/** Culturas do simulador que têm resultado na análise. Soja não tem. */
+const HARVEST_CROPS: Partial<Record<CropPresetId, HarvestCrop>> = {
+  milho: safrasData.crops.milho,
+  feijao: safrasData.crops.feijao,
+  mandioca: safrasData.crops.mandioca,
+};
+
+/** Variantes de ciclo normal (o ciclo precoce do milho fica de fora). */
+const NORMAL_VARIANTS = new Set(['normal', 'padrao']);
+
+/**
+ * Frases com o resultado real das safras para a data escolhida.
+ * Todos os números vêm do JSON; nada é calculado a partir da projeção.
+ */
+export function harvestRecommendations(
+  projection: ClimateProjection,
+  cropId: CropPresetId,
+  day: number,
+  month: number,
+): string[] {
+  const crop = HARVEST_CROPS[cropId];
+  if (!crop) return [];
+
+  const { latitude, longitude } = projection.location;
+  if (!isNearSerraTalhada(latitude, longitude)) return [];
+
+  const options = crop.options.filter((option) => NORMAL_VARIANTS.has(option.variant));
+  // Só o milho tem mais de uma variante (normal e precoce): aí o rótulo entra no texto.
+  const hasSeveralVariants = new Set(crop.options.map((option) => option.variant)).size > 1;
+  const best = crop.best;
+  const bestText = hasSeveralVariants
+    ? `${formatPlanting(best.planting)} (${variantText(best.variantLabel)})`
+    : formatPlanting(best.planting);
+
+  const sameMonth = options.filter((option) => plantingMonth(option.planting) === month);
+
+  if (sameMonth.length === 0) {
+    return [
+      `Na época de plantio da região (janeiro a março), a data com menos falta de chuva foi ${bestText}: faltou em ${best.last10.insuficiente} das últimas ${best.last10.total} safras.`,
+    ];
+  }
+
+  // Dia mais próximo; em caso de empate, a data mais cedo.
+  const chosen = sameMonth.reduce((closest, option) =>
+    Math.abs(plantingDay(option.planting) - day) < Math.abs(plantingDay(closest.planting) - day)
+      ? option
+      : closest,
+  );
+
+  const { insuficiente, apertado, suficiente, total, from, to } = chosen.last10;
+  const texts = [
+    `Em Serra Talhada, quem plantou ${crop.label.toLowerCase()} perto de ${formatPlanting(chosen.planting)} nos últimos ${total} anos: faltou chuva em ${insuficiente} ${insuficiente === 1 ? 'safra' : 'safras'}, ficou apertado em ${apertado} e choveu o bastante em ${suficiente} (NASA POWER, ${from}–${to}).`,
+  ];
+
+  if (best.planting !== chosen.planting || best.variant !== chosen.variant) {
+    texts.push(
+      `A data com menos falta de chuva foi ${bestText}: faltou em ${best.last10.insuficiente} das últimas ${best.last10.total} safras.`,
+    );
+  }
+
+  return texts;
+}
+
+function plantingMonth(planting: string) {
+  return Number(planting.slice(0, 2));
+}
+
+function plantingDay(planting: string) {
+  return Number(planting.slice(3, 5));
+}
+
+/** "02-11" → "11/02". */
+function formatPlanting(planting: string) {
+  return `${planting.slice(3, 5)}/${planting.slice(0, 2)}`;
+}
+
+/** "Ciclo normal (cerca de 140 dias)" → "ciclo normal, cerca de 140 dias". */
+function variantText(label: string) {
+  const flat = label.replace(/\s*\(([^)]*)\)\s*$/, ', $1');
+  return flat.charAt(0).toLowerCase() + flat.slice(1);
 }
 
 function round1(value: number) {
