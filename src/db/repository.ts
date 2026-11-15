@@ -172,3 +172,7 @@ export async function insertActivity(
 export async function deleteActivity(db: SQLiteDatabase, id: string) {
   await db.runAsync('DELETE FROM activities WHERE id = $id', { $id: id });
 }
+
+export async function deleteCrop(db: SQLiteDatabase, id: string) {
+  await db.runAsync('DELETE FROM crops WHERE id = $id', {$id: id });
+}

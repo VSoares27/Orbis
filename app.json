@@ -46,7 +46,8 @@
           "locationWhenInUsePermission": "O Orbis usa sua localização para mostrar o clima e as projeções climáticas da sua região."
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true,

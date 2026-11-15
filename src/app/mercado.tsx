@@ -45,7 +45,7 @@ export default function MarketScreen() {
       [
         { text: 'Fechar', style: 'cancel' },
         {
-          text: 'Falar com produtor',
+          text: 'TESTE APENAS PARA CONHECIMENTO',
           onPress: () =>
             Alert.alert(
               'Contato',

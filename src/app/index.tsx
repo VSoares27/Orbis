@@ -32,9 +32,8 @@ function getGreeting() {
 
 const quickActions: { label: string; icon: IconName; href: Href; tone: 'green' | 'sky' | 'amber' }[] = [
   { label: 'Clima', icon: 'weather-partly-cloudy', href: '/clima', tone: 'sky' },
-  { label: 'Lavouras', icon: 'sprout', href: '/lavouras', tone: 'green' },
+  { label: 'Plantações', icon: 'sprout', href: '/lavouras', tone: 'green' },
   { label: 'Caderneta', icon: 'notebook-outline', href: '/caderneta', tone: 'amber' },
-  { label: 'Mercado', icon: 'storefront-outline', href: '/mercado', tone: 'amber' },
 ];
 
 const cropStatusColor: Record<CropStatus, string> = {
@@ -62,7 +61,7 @@ export default function HomeScreen() {
           <ActivityIndicator size="large" color={Brand.green} />
         ) : (
           <>
-            <AppText variant="subtitle">Sem dados de clima</AppText>
+            <AppText variant="subtitle">Sem dados do tempo agora</AppText>
             <Button label="Tentar novamente" onPress={() => void refresh()} />
           </>
         )}
@@ -80,7 +79,7 @@ export default function HomeScreen() {
 
   function showAlerts() {
     Alert.alert(
-      'Alertas da propriedade',
+      'Avisos da propriedade',
       alerts.map((alert) => `• ${alert.title}`).join('\n'),
       [{ text: 'Entendi' }],
     );
@@ -99,7 +98,7 @@ export default function HomeScreen() {
           colors={[Brand.green]}
         />
       }>
-      {/* Cabeçalho com saudação, localização e notificações. */}
+      {/* Cabeçalho com saudação, localização e avisos. */}
       <View style={styles.header}>
         <View style={styles.headerText}>
           <AppText variant="caption" tone="secondary" style={styles.greeting}>
@@ -116,7 +115,7 @@ export default function HomeScreen() {
 
         <IconButton
           icon="bell-outline"
-          accessibilityLabel="Ver alertas"
+          accessibilityLabel="Ver avisos"
           onPress={showAlerts}
           size={44}
           iconSize={22}
@@ -134,8 +133,8 @@ export default function HomeScreen() {
       {error ? (
         <AlertBanner
           severity="info"
-          title="Modo demonstração"
-          message={error}
+          title="Modo de exemplo"
+          message="Sem sinal no momento. Mostrando dados de exemplo da sua região."
           actionLabel="Tentar novamente"
           onPress={() => void refresh()}
         />
@@ -174,7 +173,7 @@ export default function HomeScreen() {
         ))}
       </View>
 
-      {/* Resumo rápido da semana com dados da NASA POWER. */}
+      {/* Resumo rápido da semana. */}
       <View style={styles.statRow}>
         <StatTile
           icon="weather-rainy"
@@ -185,7 +184,7 @@ export default function HomeScreen() {
         />
         <StatTile
           icon="white-balance-sunny"
-          label="Radiação solar na última leitura"
+          label="Força do sol hoje"
           value={`${today.solarKwh}`}
           unit="kWh/m²"
           tone="amber"
@@ -194,7 +193,7 @@ export default function HomeScreen() {
 
       <View style={styles.section}>
         <SectionHeader
-          title="Suas lavouras"
+          title="Suas plantações"
           subtitle={`${crops.length} culturas em acompanhamento`}
           actionLabel="Ver todas"
           onActionPress={() => router.push('/lavouras')}
@@ -208,7 +207,7 @@ export default function HomeScreen() {
             <Pressable
               key={crop.id}
               accessibilityRole="button"
-              accessibilityLabel={`Abrir lavoura de ${crop.name}`}
+              accessibilityLabel={`Abrir plantação de ${crop.name}`}
               onPress={() => router.push('/lavouras')}
               style={({ pressed }) => pressed && styles.pressed}>
               <Card style={styles.cropCard}>
@@ -256,14 +255,14 @@ export default function HomeScreen() {
         </ScrollView>
       </View>
 
-      {/* Recomendação gerada a partir das métricas de clima. */}
+      {/* Dica prática gerada a partir do tempo da região. */}
       <Card variant="soft" style={styles.recommendation}>
         <View style={styles.recommendationHeader}>
           <View style={styles.recommendationIcon}>
             <Icon name="lightbulb-on-outline" size={20} color={Brand.amber} />
           </View>
           <AppText variant="label" tone="amber">
-            RECOMENDAÇÃO DO DIA
+            DICA DE HOJE PARA A ROÇA
           </AppText>
         </View>
 
@@ -273,7 +272,7 @@ export default function HomeScreen() {
         </AppText>
 
         <Button
-          label="Ver análise completa"
+          label="Simular plantio e ver clima"
           variant="secondary"
           size="sm"
           icon="arrow-right"

@@ -20,7 +20,6 @@ const tabs: TabItem[] = [
   { name: 'index', href: '/', label: 'Início', icon: 'home-variant-outline' },
   { name: 'clima', href: '/clima', label: 'Clima', icon: 'weather-partly-cloudy' },
   { name: 'lavouras', href: '/lavouras', label: 'Lavouras', icon: 'sprout' },
-  { name: 'mercado', href: '/mercado', label: 'Mercado', icon: 'storefront-outline' },
   { name: 'caderneta', href: '/caderneta', label: 'Caderneta', icon: 'notebook-outline' },
 ];
 

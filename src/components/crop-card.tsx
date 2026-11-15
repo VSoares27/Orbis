@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
 import { Badge } from './ui/badge';
-import { Button } from './ui/button';
+import { Button, IconButton } from './ui/button';
 import { Card } from './ui/card';
 import { Icon } from './ui/icon';
 import { ProgressBar } from './ui/progress-bar';
@@ -17,6 +17,7 @@ type CropCardProps = {
   expanded?: boolean;
   onToggleDetails?: () => void;
   onManage?: () => void;
+  onDelete?: () => void;
 };
 
 const statusStyles: Record<
@@ -28,8 +29,14 @@ const statusStyles: Record<
   colheita: { badge: 'sky', color: Brand.sky, background: Brand.skySoft },
 };
 
-/** Card de lavoura com progresso, próxima ação e detalhes expansíveis. */
-export function CropCard({ crop, expanded, onToggleDetails, onManage }: CropCardProps) {
+/** Card de plantação com crescimento, próxima tarefa e detalhes. */
+export function CropCard({
+  crop,
+  expanded,
+  onToggleDetails,
+  onManage,
+  onDelete,
+}: CropCardProps) {
   const status = statusStyles[crop.status];
 
   return (
@@ -55,7 +62,7 @@ export function CropCard({ crop, expanded, onToggleDetails, onManage }: CropCard
       <View style={styles.progressBlock}>
         <View style={styles.progressLabels}>
           <AppText variant="caption" tone="secondary">
-            Progresso do ciclo
+            Crescimento da roça
           </AppText>
           <AppText variant="caption" tone="brand" style={styles.progressValue}>
             {crop.progress}%
@@ -73,7 +80,7 @@ export function CropCard({ crop, expanded, onToggleDetails, onManage }: CropCard
         <View style={styles.metaDivider} />
         <Meta
           icon="water-outline"
-          label="Irrigação recomendada"
+          label="Água recomendada"
           value={`${formatNumber(crop.irrigation.recommendedMm, 0)} mm`}
         />
       </View>
@@ -82,7 +89,7 @@ export function CropCard({ crop, expanded, onToggleDetails, onManage }: CropCard
         <Icon name="clipboard-check-outline" size={18} color={Brand.green} />
         <View style={styles.nextActionText}>
           <AppText variant="caption" tone="muted">
-            Próxima ação
+            Próxima tarefa
           </AppText>
           <AppText variant="label">{crop.nextAction}</AppText>
         </View>
@@ -94,7 +101,7 @@ export function CropCard({ crop, expanded, onToggleDetails, onManage }: CropCard
             {crop.notes}
           </AppText>
           <AppText variant="caption" tone="muted">
-            Plantio em {formatDayMonth(crop.plantedAt)} · necessidade de {crop.irrigation.needMm} mm
+            Plantado em {formatDayMonth(crop.plantedAt)} · precisa de {crop.irrigation.needMm} mm de água
           </AppText>
         </View>
       )}
@@ -109,13 +116,22 @@ export function CropCard({ crop, expanded, onToggleDetails, onManage }: CropCard
           style={styles.actionButton}
         />
         <Button
-          label="Registrar manejo"
+          label="Anotar serviço"
           variant="outline"
           size="sm"
           icon="pencil-outline"
           onPress={onManage}
           style={styles.actionButton}
         />
+        {onDelete && (
+          <IconButton
+            icon="trash-can-outline"
+            accessibilityLabel={`Excluir plantação de ${crop.name}`}
+            onPress={onDelete}
+            background={Brand.cream}
+            color={Brand.amber}
+          />
+        )}
       </View>
     </Card>
   );
@@ -223,6 +239,7 @@ const styles = StyleSheet.create({
   },
   actions: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: Spacing.two,
   },
   actionButton: {

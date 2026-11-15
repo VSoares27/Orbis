@@ -1,5 +1,6 @@
 import { AlertBanner } from '@/components/alert-banner';
 import { DataSourceNote } from '@/components/data-source-note';
+import { PlantingSimulatorCard } from '@/components/planting-simulator-card';
 import { StatTile } from '@/components/stat-tile';
 import { BarChart, type BarDatum } from '@/components/ui/bar-chart';
 import { IconButton } from '@/components/ui/button';
@@ -37,7 +38,6 @@ export default function ClimateScreen() {
 
   const today = latestDay(snapshot);
 
-  // Sem nenhum dia na série: mostra carregamento ou um estado vazio com opção de tentar de novo.
   if (!today) {
     return (
       <Screen
@@ -56,7 +56,7 @@ export default function ClimateScreen() {
             <>
               <AppText variant="subtitle">Sem dados de clima</AppText>
               <AppText variant="caption" tone="secondary" style={{ textAlign: 'center' }}>
-                {error ?? 'Não foi possível carregar a série de clima.'}
+                {error ?? 'Não foi possível carregar as informações do tempo agora.'}
               </AppText>
               <IconButton
                 icon="refresh"
@@ -82,7 +82,6 @@ export default function ClimateScreen() {
   const avgTemperature = average(week, (day) => day.tempAvg);
   const advice = irrigationAdvice(today);
 
-  // Barras de chuva: a última leitura recebida fica destacada.
   const rainBars: BarDatum[] = week.map((day, index) => ({
     label: formatWeekday(day.date),
     value: day.rainMm,
@@ -98,30 +97,30 @@ export default function ClimateScreen() {
     },
     {
       icon: 'weather-windy',
-      title: avgWind > 10 ? 'Evite pulverização hoje' : 'Boa janela para pulverização',
+      title: avgWind > 10 ? 'Evite passar defensivo hoje' : 'Bom horário para aplicar defensivo',
       description:
         avgWind > 10
-          ? `Vento médio de ${avgWind} km/h pode causar deriva do produto.`
-          : `Vento médio de ${avgWind} km/h, dentro da faixa segura para aplicações.`,
+          ? `Vento de ${avgWind} km/h pode espalhar o produto para fora da lavoura.`
+          : `Vento calmo (${avgWind} km/h), bom para aplicar sem desperdício.`,
       tone: avgWind > 10 ? 'amber' : 'green',
     },
     {
       icon: 'bug-outline',
       title:
-        avgHumidity >= 80 ? 'Atenção a doenças fúngicas' : 'Risco fúngico sob controle',
+        avgHumidity >= 80 ? 'Cuidado com mofo e ferrugem' : 'Pouco risco de mofo nas folhas',
       description:
         avgHumidity >= 80
-          ? `Umidade média de ${avgHumidity}% favorece fungos. Vistorie as folhas baixas.`
-          : `Umidade média de ${avgHumidity}%, sem alerta forte para fungos nesta semana.`,
+          ? `Tempo muito úmido (${avgHumidity}%). Vale olhar as folhas de baixo da planta.`
+          : `Umidade controlada (${avgHumidity}%), sem perigo de doenças por excesso de água.`,
       tone: avgHumidity >= 80 ? 'amber' : 'green',
     },
     {
       icon: 'white-balance-sunny',
-      title: avgSolar >= 5 ? 'Boa condição de secagem' : 'Secagem mais lenta',
+      title: avgSolar >= 5 ? 'Sol bom para secar colheita' : 'Secagem mais devagar',
       description:
         avgSolar >= 5
-          ? 'A radiação solar favorece a secagem de grãos e a fotossíntese.'
-          : 'A baixa radiação pede mais cuidado ao secar grãos e ao manejar mudas.',
+          ? 'Bastante sol para ajudar o crescimento da planta e secar os grãos.'
+          : 'Pouco sol nos últimos dias; tenha cuidado extra ao secar grãos e cuidar de mudas.',
       tone: avgSolar >= 5 ? 'green' : 'sky',
     },
   ];
@@ -145,7 +144,7 @@ export default function ClimateScreen() {
         </View>
         <IconButton
           icon="refresh"
-          accessibilityLabel="Atualizar dados da NASA POWER"
+          accessibilityLabel="Atualizar dados do clima"
           onPress={refresh}
           background={Brand.greenSoft}
           color={Brand.green}
@@ -155,8 +154,8 @@ export default function ClimateScreen() {
       {error && (
         <AlertBanner
           severity="info"
-          title="Modo demonstração"
-          message={error}
+          title="Modo de exemplo"
+          message="Sem conexão no momento. Mostrando dados de exemplo da sua região."
           actionLabel="Tentar novamente"
           onPress={refresh}
         />
@@ -170,10 +169,12 @@ export default function ClimateScreen() {
         loading={loading}
       />
 
+      <PlantingSimulatorCard />
+
       <Card style={styles.chartCard}>
         <SectionHeader
           title="Chuva nos últimos 7 dias"
-          subtitle="Precipitação diária observada por satélite"
+          subtitle="Quanto choveu por dia na sua região"
         />
 
         <View style={styles.chartSummary}>
@@ -181,7 +182,7 @@ export default function ClimateScreen() {
             {rainWeek} mm
           </AppText>
           <AppText variant="caption" tone="secondary">
-            acumulado no período
+            somados na semana
           </AppText>
         </View>
 
@@ -197,13 +198,13 @@ export default function ClimateScreen() {
           <View style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: Brand.sky }]} />
             <AppText variant="caption" tone="secondary">
-              Chuva (mm)
+              Chuva no dia (mm)
             </AppText>
           </View>
           <View style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: Brand.green }]} />
             <AppText variant="caption" tone="secondary">
-              Última leitura
+              Dia mais recente
             </AppText>
           </View>
         </View>
@@ -211,8 +212,8 @@ export default function ClimateScreen() {
 
       <View style={styles.section}>
         <SectionHeader
-          title="Indicadores da semana"
-          subtitle="Médias calculadas a partir dos dados NASA POWER"
+          title="Resumo da semana"
+          subtitle="Médias registradas na sua propriedade"
         />
 
         <View style={styles.statsGrid}>
@@ -225,35 +226,35 @@ export default function ClimateScreen() {
           />
           <StatTile
             icon="thermometer-lines"
-            label="Amplitude térmica"
+            label="Variação de calor"
             value={`${Math.round((range.max - range.min) * 10) / 10}`}
             unit="°C"
             tone="amber"
           />
           <StatTile
             icon="water-percent"
-            label="Umidade relativa"
+            label="Umidade do ar"
             value={`${avgHumidity}`}
             unit="%"
             tone="sky"
           />
           <StatTile
             icon="weather-windy"
-            label="Vento médio"
+            label="Força do vento"
             value={`${avgWind}`}
             unit="km/h"
             tone="green"
           />
           <StatTile
             icon="white-balance-sunny"
-            label="Radiação solar"
+            label="Força do sol"
             value={`${avgSolar}`}
             unit="kWh/m²"
             tone="amber"
           />
           <StatTile
             icon="water-outline"
-            label="Evapotranspiração"
+            label="Água que seca da terra"
             value={`${avgEvapotranspiration}`}
             unit="mm/dia"
             tone="sky"
@@ -264,7 +265,7 @@ export default function ClimateScreen() {
       <Card variant="default" style={styles.insightsCard}>
         <SectionHeader
           title="O que isso significa"
-          subtitle="Leitura prática para a sua lavoura"
+          subtitle="Dicas práticas para cuidar da sua roça"
         />
 
         <View style={styles.insights}>
@@ -291,10 +292,10 @@ export default function ClimateScreen() {
       <Card variant="outline" style={styles.noteCard}>
         <Icon name="information-outline" size={20} color={Brand.sky} />
         <View style={styles.noteText}>
-          <AppText variant="label">Dados observados, não previsão</AppText>
+          <AppText variant="label">Sobre esses números</AppText>
           <AppText variant="caption" tone="secondary">
-            A NASA POWER entrega medições e reanálises por satélite. Para previsão de curto prazo,
-            conecte um serviço meteorológico ao backend.
+            Os dados vêm dos satélites da NASA para a sua região e ajudam a planejar irrigação e
+            época de plantio.
           </AppText>
         </View>
       </Card>

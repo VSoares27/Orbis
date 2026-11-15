@@ -31,13 +31,13 @@ type FilterKey = 'todas' | CropStatus;
 
 const filterLabels: { key: FilterKey; label: string }[] = [
   { key: 'todas', label: 'Todas' },
-  { key: 'saudavel', label: 'Saudáveis' },
+  { key: 'saudavel', label: 'Boas' },
   { key: 'atencao', label: 'Atenção' },
   { key: 'colheita', label: 'Colheita' },
 ];
 
 export default function CropsScreen() {
-  const { crops, error, reload, addCrop } = useCrops();
+  const { crops, error, reload, addCrop, removeCrop } = useCrops();
   const { addActivity } = useActivities();
   const [filter, setFilter] = useState<FilterKey>('todas');
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -66,10 +66,29 @@ export default function CropsScreen() {
     setManageCropId(crop.id);
   }
 
+  function handleDelete(crop: Crop) {
+    Alert.alert(
+      'Remover plantação',
+      `Tem certeza que deseja apagar ${crop.name}? As anotações da caderneta continuam salvas.`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Apagar',
+          style: 'destructive',
+          onPress: () => {
+            void removeCrop(crop.id).catch(() => {
+              Alert.alert('Erro', 'Não foi possível apagar essa plantação agora.');
+            });
+          },
+        },
+      ],
+    );
+  }
+
   const handleSaveActivity = useCallback(
     async (input: NewActivityInput) => {
       await addActivity(input);
-      Alert.alert('Manejo registrado', 'A anotação já está na caderneta do campo.');
+      Alert.alert('Serviço anotado', 'A anotação já está salva na sua caderneta.');
     },
     [addActivity],
   );
@@ -86,7 +105,7 @@ export default function CropsScreen() {
     const newCrop: Crop = {
       id: `crop-${Date.now()}`,
       name,
-      variety: form.variety.trim() || 'Não informada',
+      variety: form.variety.trim() || 'Comum da região',
       areaHectares: area,
       plantedAt,
       harvestForecast: harvestDate.toISOString().slice(0, 10),
@@ -94,9 +113,9 @@ export default function CropsScreen() {
       progress: 5,
       icon: 'sprout',
       irrigation: { needMm: 25, recommendedMm: 20 },
-      nextAction: 'Acompanhar emergência',
+      nextAction: 'Acompanhar nascimento das mudas',
       notes:
-        'Lavoura cadastrada manualmente. Ajuste as informações conforme o ciclo evoluir.',
+        'Plantação anotada por você. Atualize as informações conforme a roça for crescendo.',
     };
 
     setSaving(true);
@@ -119,9 +138,9 @@ export default function CropsScreen() {
     <Screen>
       <View style={styles.header}>
         <View style={styles.headerText}>
-          <AppText variant="title">Minhas lavouras</AppText>
+          <AppText variant="title">Minhas plantações</AppText>
           <AppText variant="caption" tone="secondary">
-            Acompanhe o ciclo, a irrigação e a colheita de cada cultura.
+            Acompanhe o crescimento, a água e a colheita de cada roça.
           </AppText>
         </View>
         <Button
@@ -137,7 +156,7 @@ export default function CropsScreen() {
         <SummaryItem
           icon="sprout-outline"
           value={`${crops.length}`}
-          label="lavouras"
+          label="plantações"
         />
         <View style={styles.summaryDivider} />
         <SummaryItem
@@ -154,21 +173,21 @@ export default function CropsScreen() {
       </Card>
 
       <View style={styles.localNote}>
-        <Icon name="database" size={16} color={Brand.green} />
+        <Icon name="check-circle-outline" size={16} color={Brand.green} />
         <AppText variant="caption" tone="secondary">
-          Lavouras salvas no SQLite local do aparelho.
+          Suas anotações ficam salvas no celular, mesmo sem sinal na roça.
         </AppText>
       </View>
 
       {error && (
         <Card variant="outline">
           <AppText variant="caption" tone="danger">
-            Não foi possível acessar o banco local: {error}
+            Não foi possível carregar suas plantações agora.
           </AppText>
         </Card>
       )}
 
-      {/* Filtros por status. */}
+      {/* Filtros por situação. */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -211,6 +230,7 @@ export default function CropsScreen() {
             expanded={expandedId === crop.id}
             onToggleDetails={() => toggleDetails(crop.id)}
             onManage={() => handleManage(crop)}
+            onDelete={() => handleDelete(crop)}
           />
         ))}
       </View>
@@ -218,11 +238,11 @@ export default function CropsScreen() {
       {filtered.length === 0 && (
         <Card>
           <EmptyState
-            title={crops.length === 0 ? 'Nenhuma lavoura cadastrada' : 'Nenhuma lavoura neste filtro'}
+            title={crops.length === 0 ? 'Nenhuma plantação anotada' : 'Nenhuma plantação neste filtro'}
             description={
               crops.length === 0
-                ? 'Cadastre a primeira cultura para começar o acompanhamento.'
-                : 'Troque o filtro ou cadastre uma nova lavoura para começar o acompanhamento.'
+                ? 'Cadastre o que você plantou para começar o acompanhamento.'
+                : 'Troque o filtro ou anote uma nova plantação para acompanhar.'
             }
           />
         </Card>
@@ -232,16 +252,16 @@ export default function CropsScreen() {
         <View style={styles.tipHeader}>
           <Icon name="lightbulb-on-outline" size={20} color={Brand.amber} />
           <AppText variant="label" tone="amber">
-            DICA DE MANEJO
+            DICA PARA A TERRA
           </AppText>
         </View>
         <AppText variant="body" tone="secondary">
-          Alterne culturas e faça rotação para reduzir pragas e melhorar a fertilidade. O app usa a
-          previsão do ciclo de cada lavoura para lembrar você das próximas ações.
+          Alterne o que você planta em cada safra para diminuir pragas e manter a terra forte. O app
+          usa o tempo de cada cultura para avisar a hora certa de cuidar e colher.
         </AppText>
       </Card>
 
-      {/* Modal de cadastro persistido no SQLite local. */}
+      {/* Modal de cadastro salvo no aparelho. */}
       <Modal
         visible={modalVisible}
         transparent
@@ -263,9 +283,9 @@ export default function CropsScreen() {
 
               <View style={styles.sheetHeader}>
                 <View style={styles.headerText}>
-                  <AppText variant="heading">Nova lavoura</AppText>
+                  <AppText variant="heading">Nova plantação</AppText>
                   <AppText variant="caption" tone="secondary">
-                    Registre a cultura para acompanhar o ciclo.
+                    Anote o que você plantou para acompanhar até a colheita.
                   </AppText>
                 </View>
                 <IconButton
@@ -278,8 +298,8 @@ export default function CropsScreen() {
               </View>
 
               <Input
-                label="Cultura"
-                placeholder="Ex.: Mandioca"
+                label="O que vai plantar"
+                placeholder="Ex.: Milho"
                 value={form.name}
                 onChangeText={(name) => setForm((current) => ({ ...current, name }))}
                 icon="sprout"
@@ -287,29 +307,29 @@ export default function CropsScreen() {
               />
 
               <Input
-                label="Variedade"
-                placeholder="Ex.: IAC 576-70"
+                label="Tipo / Semente"
+                placeholder="Ex.: Milho verde ou criouro"
                 value={form.variety}
                 onChangeText={(variety) => setForm((current) => ({ ...current, variety }))}
                 icon="leaf"
               />
 
               <Input
-                label="Área (hectares)"
+                label="Tamanho da área (hectares)"
                 placeholder="Ex.: 1,5"
                 value={form.area}
                 onChangeText={(area) => setForm((current) => ({ ...current, area }))}
                 keyboardType="decimal-pad"
                 icon="ruler-square"
-                hint="Usamos a área para estimar irrigação e produtividade."
+                hint="Ajuda a calcular quanta água e colheita esperar."
               />
 
               <AppText variant="caption" tone="muted">
-                A lavoura será salva no SQLite local e ficará disponível mesmo sem internet.
+                Fica salvo no seu celular para você consultar mesmo sem internet na roça.
               </AppText>
 
               <Button
-                label={saving ? 'Salvando...' : 'Adicionar lavoura'}
+                label={saving ? 'Salvando...' : 'Salvar plantação'}
                 icon="plus"
                 fullWidth
                 onPress={() => void handleAddCrop()}

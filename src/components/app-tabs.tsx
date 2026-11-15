@@ -34,10 +34,10 @@ export default function AppTabs() {
         <NativeTabs.Trigger.Icon sf={{ default: 'leaf', selected: 'leaf.fill' }} md="agriculture" />
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="mercado">
+      {/* <NativeTabs.Trigger name="mercado">
         <NativeTabs.Trigger.Label>Mercado</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf={{ default: 'cart', selected: 'cart.fill' }} md="storefront" />
-      </NativeTabs.Trigger>
+      </NativeTabs.Trigger> */}
 
       <NativeTabs.Trigger name="caderneta">
         <NativeTabs.Trigger.Label>Caderneta</NativeTabs.Trigger.Label>

@@ -1,4 +1,4 @@
-/** Constantes, agregações e textos das simulações climáticas. */
+/** Constantes, agregações e textos simples das previsões climáticas para o produtor. */
 
 import type {
   ClimateScenario,
@@ -7,30 +7,28 @@ import type {
   ProjectionSource,
 } from '@/types';
 
-/** Primeiro ano disponível em todos os cenários usados pelo app. */
 export const PROJECTION_YEAR_MIN = 2025;
-/** Último início de janela que termina em 2100. */
 export const PROJECTION_YEAR_MAX = 2096;
 export const PROJECTION_YEAR_SPAN = 5;
 
 export const SCENARIOS: ClimateScenario[] = ['ssp126', 'ssp245', 'ssp370'];
 
 export const SCENARIO_LABELS: Record<ClimateScenario, string> = {
-  ssp126: 'Baixas emissões',
-  ssp245: 'Emissões intermediárias',
-  ssp370: 'Altas emissões',
+  ssp126: 'Ano com mais chuva',
+  ssp245: 'Clima normal da região',
+  ssp370: 'Ano mais quente e seco',
 };
 
 export const SCENARIO_SHORT_LABELS: Record<ClimateScenario, string> = {
-  ssp126: 'SSP1-2.6',
-  ssp245: 'SSP2-4.5',
-  ssp370: 'SSP3-7.0',
+  ssp126: 'Mais chuva',
+  ssp245: 'Normal',
+  ssp370: 'Mais seco',
 };
 
 export const SCENARIO_DESCRIPTIONS: Record<ClimateScenario, string> = {
-  ssp126: 'Cenário com forte redução de emissões e mais ação climática.',
-  ssp245: 'Cenário intermediário, próximo das políticas atuais.',
-  ssp370: 'Cenário de altas emissões, com maior aquecimento.',
+  ssp126: 'Cenário com chuvas mais regulares e temperaturas mais amenas.',
+  ssp245: 'Cenário esperado seguindo o comportamento normal dos últimos anos.',
+  ssp370: 'Cenário com menos chuva e calor mais forte durante a safra.',
 };
 
 export const MONTH_LABELS = [
@@ -71,7 +69,6 @@ export function buildAnnual(months: MonthlyProjection[]): ProjectionAnnual {
   };
 }
 
-/** Variação percentual da chuva anual. Retorna null quando a base é zero. */
 export function rainChangePercent(annual: ProjectionAnnual) {
   if (annual.baselineRainMm <= 0) return null;
   return round(
@@ -85,13 +82,13 @@ export function temperatureChange(annual: ProjectionAnnual) {
 }
 
 export function projectionSourceLabel(source: ProjectionSource) {
-  return source === 'nasa-power' ? 'NASA POWER · CMIP6' : 'NEX-GDDP · ACCESS-CM2';
+  return source === 'nasa-power' ? 'Satélite NASA · Clima' : 'Satélite NASA · Região';
 }
 
 export function projectionSourceDescription(source: ProjectionSource) {
   return source === 'nasa-power'
-    ? 'Média de modelos CMIP6 downscaled da NASA POWER para a sua localização.'
-    : 'Fallback global NEX-GDDP-CMIP6 (NASA), usado onde a API de projeção ainda não cobre.';
+    ? 'Estimativa feita com dados de satélite da NASA para a sua propriedade.'
+    : 'Estimativa climática da NASA ajustada para a região da sua propriedade.';
 }
 
 export function formatSignedNumber(value: number, digits = 1) {

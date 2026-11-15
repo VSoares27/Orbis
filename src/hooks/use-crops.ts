@@ -1,10 +1,10 @@
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useEffect, useState } from 'react';
 
-import { insertCrop, listCrops } from '@/db/repository';
+import { deleteCrop, insertCrop, listCrops } from '@/db/repository';
 import type { Crop } from '@/types';
 
-/** Carrega e atualiza as lavouras persistidas no SQLite local. */
+/** Carrega e atualiza as plantações salvas no aparelho. */
 export function useCrops() {
   const db = useSQLiteContext();
   const [crops, setCrops] = useState<Crop[]>([]);
@@ -22,7 +22,7 @@ export function useCrops() {
       })
       .catch((cause: unknown) => {
         if (!active) return;
-        setError(cause instanceof Error ? cause.message : 'Não foi possível ler as lavouras.');
+        setError(cause instanceof Error ? cause.message : 'Não foi possível ler suas plantações.');
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -39,7 +39,7 @@ export function useCrops() {
       setCrops(rows);
       setError(null);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Não foi possível ler as lavouras.');
+      setError(cause instanceof Error ? cause.message : 'Não foi possível ler suas plantações.');
     }
   }, [db]);
 
@@ -51,5 +51,13 @@ export function useCrops() {
     [db, reload],
   );
 
-  return { crops, loading, error, reload, addCrop };
+  const removeCrop = useCallback(
+    async (id: string) => {
+      await deleteCrop(db, id);
+      await reload();
+    },
+    [db, reload],
+  );
+
+  return { crops, loading, error, reload, addCrop, removeCrop };
 }
