@@ -303,17 +303,25 @@ export function harvestRecommendations(
   const options = crop.options.filter((option) => NORMAL_VARIANTS.has(option.variant));
   // Só o milho tem mais de uma variante (normal e precoce): aí o rótulo entra no texto.
   const hasSeveralVariants = new Set(crop.options.map((option) => option.variant)).size > 1;
-  const best = crop.best;
-  const bestText = hasSeveralVariants
-    ? `${formatPlanting(best.planting)} (${variantText(best.variantLabel)})`
-    : formatPlanting(best.planting);
+  // Datas com menos safras de falta de chuva nos últimos 10 anos. Pode haver
+  // empate (ex.: mandioca); nesse caso todas são citadas. O `best` do JSON
+  // desempata pelos últimos 20 anos, número que não está no arquivo.
+  const fewestShort = Math.min(...options.map((option) => option.last10.insuficiente));
+  const bestOptions = options
+    .filter((option) => option.last10.insuficiente === fewestShort)
+    .sort((a, b) => a.planting.localeCompare(b.planting));
+  const bestTotal = bestOptions[0].last10.total;
+  const bestDates = joinPt(bestOptions.map((option) => formatPlanting(option.planting)));
+  const bestVariant = hasSeveralVariants ? ` (${variantText(bestOptions[0].variantLabel)})` : '';
+  const bestClause =
+    bestOptions.length === 1
+      ? `a data com menos falta de chuva foi ${bestDates}${bestVariant}: faltou em ${fewestShort} das últimas ${bestTotal} safras.`
+      : `as datas com menos falta de chuva foram ${bestDates}${bestVariant}: faltou em ${fewestShort} das últimas ${bestTotal} safras em cada uma.`;
 
   const sameMonth = options.filter((option) => plantingMonth(option.planting) === month);
 
   if (sameMonth.length === 0) {
-    return [
-      `Na época de plantio da região (janeiro a março), a data com menos falta de chuva foi ${bestText}: faltou em ${best.last10.insuficiente} das últimas ${best.last10.total} safras.`,
-    ];
+    return [`Na época de plantio da região (janeiro a março), ${bestClause}`];
   }
 
   // Dia mais próximo; em caso de empate, a data mais cedo.
@@ -328,13 +336,17 @@ export function harvestRecommendations(
     `Em Serra Talhada, quem plantou ${crop.label.toLowerCase()} perto de ${formatPlanting(chosen.planting)} nos últimos ${total} anos: faltou chuva em ${insuficiente} ${insuficiente === 1 ? 'safra' : 'safras'}, ficou apertado em ${apertado} e choveu o bastante em ${suficiente} (NASA POWER, ${from}–${to}).`,
   ];
 
-  if (best.planting !== chosen.planting || best.variant !== chosen.variant) {
-    texts.push(
-      `A data com menos falta de chuva foi ${bestText}: faltou em ${best.last10.insuficiente} das últimas ${best.last10.total} safras.`,
-    );
+  if (!bestOptions.includes(chosen)) {
+    texts.push(bestClause.charAt(0).toUpperCase() + bestClause.slice(1));
   }
 
   return texts;
+}
+
+/** ["a", "b", "c"] → "a, b e c". */
+function joinPt(items: string[]) {
+  if (items.length <= 1) return items.join('');
+  return `${items.slice(0, -1).join(', ')} e ${items[items.length - 1]}`;
 }
 
 function plantingMonth(planting: string) {
