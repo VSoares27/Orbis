@@ -123,9 +123,9 @@ export type ClimateSnapshot = {
 
 export type ClimateScenario = 'ssp126' | 'ssp245' | 'ssp370';
 
-export type ProjectionSource = 'nasa-power' | 'nex-gddp';
+export type ProjectionSource = 'nasa-power';
 
-/** Um mês do ano, comparando o clima observado com a projeção. */
+/** Um mês do ano, comparando a média dos 40 anos com o cenário escolhido. */
 export type MonthlyProjection = {
   /** 1 a 12. */
   month: number;
@@ -145,8 +145,9 @@ export type ProjectionAnnual = {
 };
 
 /**
- * Comparação entre a climatologia recente e um cenário futuro do CMIP6.
- * A janela tem cinco anos para suavizar a variabilidade ano a ano.
+ * Comparação entre a média de 1985–2024 (`baseline*`) e o cenário escolhido
+ * (`projected*`). Os cenários são grupos de anos reais da NASA POWER:
+ * 10 mais chuvosos, todos os 40 ou 10 mais secos. Não é projeção futura.
  */
 export type ClimateProjection = {
   location: FarmLocation;
