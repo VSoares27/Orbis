@@ -69,7 +69,7 @@ export default function CropsScreen() {
   function handleDelete(crop: Crop) {
     Alert.alert(
       'Remover plantação',
-      `Tem certeza que deseja apagar ${crop.name}? As anotações da caderneta continuam salvas.`,
+      `Tem certeza que deseja apagar ${crop.name}? As anotações dessa plantação na caderneta também serão apagadas.`,
       [
         { text: 'Cancelar', style: 'cancel' },
         {
