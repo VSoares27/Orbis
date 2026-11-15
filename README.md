@@ -1,155 +1,157 @@
 # 🌱 Orbis
 
-> Simulações de clima com dados da NASA para ajudar a agricultura familiar a decidir **o que plantar** e **quando plantar**.
+> Climate simulations powered by NASA data to help family farmers decide **what to plant** and **when to plant**.
 
-🇧🇷 Português · [🇺🇸 English](./README.en.md)
+[🇧🇷 Português](./README.br.md) · 🇺🇸 English
 
-Projeto desenvolvido para o **NASA Space Apps Hackathon**, usando a API pública **NASA POWER** (Prediction Of Worldwide Energy Resources).
+Built for the **NASA Space Apps Hackathon**, using the public **NASA POWER** (Prediction Of Worldwide Energy Resources) API.
 
 ---
 
-## 📖 Sobre o projeto
+## 📖 About
 
-Pequenos agricultores sentem na pele a imprevisibilidade do clima: uma chuva que não vem, um calor fora de época, uma safra perdida. Grande parte das ferramentas de previsão é pensada para o grande produtor, com linguagem técnica e pouca conexão com a realidade de quem planta em poucos hectares.
+Smallholder farmers feel climate unpredictability first-hand: rain that doesn't arrive, heat out of season, a lost harvest. Most forecasting tools are designed for large-scale producers, with technical language and little connection to the reality of people farming a few hectares.
 
-O **Orbis** é um aplicativo mobile (Android, iOS e web) que pega a localização do celular, busca dados de satélite da NASA para aquele ponto exato e responde, em linguagem simples, perguntas como:
+**Orbis** is a mobile app (Android, iOS and web) that reads the phone's location, fetches NASA satellite data for that exact point, and answers in plain language questions like:
 
-- *Como foi o clima da minha propriedade nos últimos dias?*
-- *Preciso irrigar hoje?*
-- *Em que mês devo plantar milho, feijão, soja ou mandioca?*
-- *E se o próximo ano for mais seco ou mais chuvoso?*
+- *How has the weather been on my farm over the last few days?*
+- *Do I need to irrigate today?*
+- *Which month should I plant maize, beans, soybean or cassava?*
+- *What if next year is drier or wetter than usual?*
 
-## ✨ Funcionalidades
+> The app's interface is in Brazilian Portuguese, since it targets Brazilian family farmers.
 
-| Tela | O que faz |
+## ✨ Features
+
+| Screen | What it does |
 | --- | --- |
-| **Início** | Saudação, clima do dia, chuva da semana, recomendação de irrigação e alertas automáticos (chuva forte, risco de fungos, vento forte para pulverização). |
-| **Clima** | Série diária dos últimos 14 dias para a localização do aparelho e o **simulador de plantio**. |
-| **Lavouras** | Cadastro das plantações (nome, variedade, área), acompanhamento de status e previsão de colheita. |
-| **Caderneta** | Diário de campo: registro de irrigação, adubação, pulverização, plantio, colheita e outros manejos. |
+| **Home** | Greeting, today's weather, weekly rainfall, irrigation advice and automatic alerts (heavy rain, fungal-disease risk, strong wind for spraying). |
+| **Climate** | Daily series for the last 14 days at the device location, plus the **planting simulator**. |
+| **Crops** | Register crops (name, variety, area), track status and expected harvest. |
+| **Field Notebook** | Field diary: log irrigation, fertilizing, spraying, planting, harvesting and other tasks. |
 
-> 🛒 Existe uma tela de **Mercado** (compra e venda entre produtores) com dados de demonstração, mas ela está **desativada** na barra de abas nesta versão.
+> 🛒 A **Market** screen (peer-to-peer trading between farmers) exists with demo data, but it is **disabled** in the tab bar in this version.
 
-### 🧪 Simulador de plantio
+### 🧪 Planting simulator
 
-O coração do projeto. O agricultor escolhe:
+The core of the project. The farmer picks:
 
-1. **A cultura**: milho, feijão, soja ou mandioca.
-2. **A data de plantio** desejada.
-3. **O cenário climático**: *Mais chuva*, *Normal* ou *Mais seco*.
+1. **A crop**: maize, beans, soybean or cassava.
+2. **A planting date**.
+3. **A climate scenario**: *Wetter*, *Normal* or *Drier*.
 
-O app avalia **as 12 janelas de plantio possíveis** (um início em cada mês), compara com a data escolhida e mostra:
+The app evaluates **all 12 possible planting windows** (one starting each month), compares them with the chosen date and shows:
 
-- uma **nota de 0 a 100** e a classificação (**ideal**, **moderado** ou **risco**);
-- o **melhor mês para plantar** e o mês previsto da colheita;
-- chuva total e temperatura média esperadas durante o ciclo, comparadas à média histórica;
-- **recomendações práticas** em linguagem simples (ex.: preparar irrigação, cuidar do escoamento, usar palhada para segurar a umidade).
+- a **score from 0 to 100** and a rating (**ideal**, **moderate** or **risk**);
+- the **best month to plant** and the expected harvest month;
+- expected total rainfall and average temperature over the crop cycle, compared with the historical baseline;
+- **practical recommendations** in plain language (e.g. prepare irrigation, manage drainage, use mulch to retain moisture).
 
-A nota parte de 100 e perde pontos quando a chuva prevista para o ciclo fica abaixo ou acima da faixa ideal da cultura, ou quando a temperatura média sai da faixa ideal. Os parâmetros de cada cultura estão em [`src/lib/planting-simulator.ts`](./src/lib/planting-simulator.ts).
+The score starts at 100 and loses points when projected cycle rainfall falls below or above the crop's ideal range, or when average temperature leaves its ideal range. Each crop's parameters live in [`src/lib/planting-simulator.ts`](./src/lib/planting-simulator.ts).
 
-## 🛰️ Dados da NASA
+## 🛰️ NASA data
 
-O Orbis usa três consultas à [API NASA POWER](https://power.larc.nasa.gov/docs/services/api/) (comunidade `AG`, agroclimatologia). Não é necessária chave de API.
+Orbis makes three kinds of queries to the [NASA POWER API](https://power.larc.nasa.gov/docs/services/api/) (`AG` agroclimatology community). No API key is required.
 
-| Uso | Endpoint | Parâmetros |
+| Use | Endpoint | Parameters |
 | --- | --- | --- |
-| Clima recente (14 dias) | `temporal/daily/point` | `T2M`, `T2M_MAX`, `T2M_MIN`, `PRECTOTCORR`, `RH2M`, `WS2M`, `ALLSKY_SFC_SW_DWN`, `EVLAND` |
-| Climatologia de referência (1985–2024) | `temporal/monthly/point` | `T2M`, `PRECTOTCORR` |
-| Projeção futura | `projection/monthly/point` (ensemble CMIP6) | `T2M`, `PRECTOTCORR` |
+| Recent weather (14 days) | `temporal/daily/point` | `T2M`, `T2M_MAX`, `T2M_MIN`, `PRECTOTCORR`, `RH2M`, `WS2M`, `ALLSKY_SFC_SW_DWN`, `EVLAND` |
+| Reference climatology (1985–2024) | `temporal/monthly/point` | `T2M`, `PRECTOTCORR` |
+| Future projection | `projection/monthly/point` (CMIP6 ensemble) | `T2M`, `PRECTOTCORR` |
 
-As unidades são convertidas para o dia a dia do produtor (vento em km/h, radiação em kWh/m²) e a evapotranspiração (`EVLAND`) alimenta a recomendação de irrigação.
+Units are converted for everyday use (wind in km/h, solar radiation in kWh/m²), and evapotranspiration (`EVLAND`) feeds the irrigation advice.
 
-### ⚠️ Transparência sobre as projeções
+### ⚠️ Transparency about projections
 
-Na data deste projeto, a API de projeção da NASA POWER **ainda não cobre o Brasil**. O app tenta consultá-la primeiro e, quando ela não responde para o ponto, usa uma **estimativa calibrada** sobre a climatologia histórica real da NASA para a coordenada:
+At the time of this project, the NASA POWER projection API **does not yet cover Brazil**. The app tries it first and, when it has no data for the point, falls back to a **calibrated estimate** built on the real NASA historical climatology for that coordinate:
 
-| Cenário (no app) | SSP de referência | Ajuste de temperatura | Fator de chuva |
+| Scenario (in app) | Reference SSP | Temperature offset | Rainfall factor |
 | --- | --- | --- | --- |
-| Mais chuva | SSP1-2.6 | +0,8 °C | × 0,98 |
-| Normal | SSP2-4.5 | +1,4 °C | × 0,93 |
-| Mais seco | SSP3-7.0 | +2,2 °C | × 0,87 |
+| Wetter | SSP1-2.6 | +0.8 °C | × 0.98 |
+| Normal | SSP2-4.5 | +1.4 °C | × 0.93 |
+| Drier | SSP3-7.0 | +2.2 °C | × 0.87 |
 
-Esses ajustes são uma **heurística para fins de demonstração**, não o resultado de um downscaling de modelos CMIP6. A tela indica a origem dos dados em cada simulação. Os resultados são uma **ferramenta de apoio à decisão, não uma previsão garantida**.
+These offsets are a **heuristic for demonstration purposes**, not the output of downscaled CMIP6 models. The UI indicates the data source in each simulation. Results are a **decision-support tool, not a guaranteed forecast**.
 
-## 🏗️ Arquitetura
+## 🏗️ Architecture
 
-- **Sem backend**: o app consulta a NASA POWER diretamente.
-- **Offline-first para os dados do produtor**: lavouras e caderneta ficam em **SQLite** no próprio aparelho (`expo-sqlite`), com dados de exemplo na primeira execução.
-- **Localização real**: `expo-location` pega o GPS do aparelho; o clima e as simulações usam somente essa posição.
-- **Fallback gracioso**: se a NASA POWER não responder (sem internet, timeout de 15 s, ou bloqueio de CORS no navegador), a tela mostra dados demonstrativos e avisa o usuário.
-- **Cache em memória** das projeções por coordenada, cenário e ano.
+- **No backend**: the app queries NASA POWER directly.
+- **Offline-first for farmer data**: crops and notebook entries are stored in on-device **SQLite** (`expo-sqlite`), seeded with sample data on first launch.
+- **Real location**: `expo-location` reads the device GPS; weather and simulations use only that position.
+- **Graceful fallback**: if NASA POWER is unreachable (no internet, 15 s timeout, or CORS blocking in the browser), the screen shows demo data and notifies the user.
+- **In-memory cache** of projections per coordinate, scenario and start year.
 
-### Estrutura de pastas
+### Folder structure
 
 ```
 src/
-├── app/            # Telas (Expo Router): index, clima, lavouras, caderneta, mercado
-├── components/     # Componentes de UI e cartões (simulador, clima, lavouras...)
-├── context/        # Localização do dispositivo
-├── db/             # Schema e repositório SQLite
+├── app/            # Screens (Expo Router): index, clima, lavouras, caderneta, mercado
+├── components/     # UI components and cards (simulator, weather, crops...)
+├── context/        # Device location
+├── db/             # SQLite schema and repository
 ├── hooks/          # useNasaClimate, useNasaProjection, useCrops, useActivities
-├── lib/            # Regras puras: simulador, projeção, alertas, irrigação
-├── services/       # Integração com a NASA POWER
-├── data/           # Dados de demonstração
-├── constants/      # Tema
-└── types/          # Tipos TypeScript
+├── lib/            # Pure logic: simulator, projection, alerts, irrigation
+├── services/       # NASA POWER integration
+├── data/           # Demo data
+├── constants/      # Theme
+└── types/          # TypeScript types
 ```
 
-## 🧰 Tecnologias
+## 🧰 Tech stack
 
-- [Expo](https://expo.dev) SDK 58 + [Expo Router](https://docs.expo.dev/router/introduction) (rotas por arquivo e abas nativas)
-- React 19 e React Native 0.88 (com React Compiler)
+- [Expo](https://expo.dev) SDK 58 + [Expo Router](https://docs.expo.dev/router/introduction) (file-based routing, native tabs)
+- React 19 and React Native 0.88 (with React Compiler)
 - TypeScript
 - `expo-sqlite`, `expo-location`
 - [NASA POWER API](https://power.larc.nasa.gov/)
 
-## 🚀 Como rodar
+## 🚀 Getting started
 
-**Pré-requisitos:** Node.js (versão LTS) e npm. Para testar no celular, o app [Expo Go](https://expo.dev/go) ou um [development build](https://docs.expo.dev/develop/development-builds/introduction/).
+**Prerequisites:** Node.js (LTS) and npm. To test on a phone, use [Expo Go](https://expo.dev/go) or a [development build](https://docs.expo.dev/develop/development-builds/introduction/).
 
 ```bash
-# 1. Instale as dependências
+# 1. Install dependencies
 npm install
 
-# 2. Inicie o projeto
+# 2. Start the project
 npx expo start
 ```
 
-No terminal, escolha onde abrir:
+Then choose where to open it:
 
 ```bash
-npm run android   # emulador ou dispositivo Android
-npm run ios       # simulador iOS (macOS)
-npm run web       # navegador
+npm run android   # Android emulator or device
+npm run ios       # iOS simulator (macOS)
+npm run web       # browser
 ```
 
-> Permita o acesso à localização quando o app pedir. Sem isso, ele não consegue buscar o clima da sua propriedade.
+> Grant location access when prompted. Without it, the app can't fetch weather for your farm.
 >
-> No navegador, a NASA POWER pode bloquear as chamadas por CORS e o app passa a exibir dados demonstrativos. Para a experiência completa, prefira Android ou iOS.
+> In the browser, NASA POWER may block requests due to CORS and the app will show demo data. For the full experience, use Android or iOS.
 
-Para checar o código: `npm run lint`.
+To lint the code: `npm run lint`.
 
-## ⚠️ Limitações conhecidas
+## ⚠️ Known limitations
 
-- As faixas ideais de chuva e temperatura das culturas são valores de referência simplificados; devem ser validadas com a assistência técnica local (Embrapa, Emater etc.).
-- A irrigação usa uma regra simples (evapotranspiração menos chuva do dia), sem sensores de solo nem coeficiente de cultura (Kc).
-- Projeções futuras para o Brasil usam a estimativa calibrada descrita acima.
-- A tela de Mercado usa dados fictícios e está desativada.
+- The crops' ideal rainfall and temperature ranges are simplified reference values; they should be validated with local agronomy support (e.g. Embrapa, Emater).
+- Irrigation advice uses a simple rule (evapotranspiration minus the day's rain), with no soil sensors or crop coefficient (Kc).
+- Future projections for Brazil use the calibrated estimate described above.
+- The Market screen uses fictional data and is disabled.
 
-## 🗺️ Próximos passos
+## 🗺️ Roadmap
 
-- Backend próprio como proxy da NASA POWER (evita o bloqueio de CORS na web).
-- Projeções downscaled reais (por exemplo, NASA NEX-GDDP-CMIP6).
-- Mais culturas e variedades, com parâmetros validados por especialistas.
-- Integração com sensores de solo e coeficiente de cultura (Kc).
-- Ativar a tela de Mercado para venda direta entre produtores.
+- Own backend as a NASA POWER proxy (avoids CORS blocking on web).
+- Real downscaled projections (e.g. NASA NEX-GDDP-CMIP6).
+- More crops and varieties, with parameters validated by specialists.
+- Soil sensor and crop coefficient (Kc) integration.
+- Enable the Market screen for direct farmer-to-farmer sales.
 
-## 📄 Licença
+## 📄 License
 
-Distribuído sob a licença MIT. Veja o arquivo [`LICENSE`](./LICENSE).
+Released under the MIT License. See [`LICENSE`](./LICENSE).
 
-## 🙏 Agradecimentos
+## 🙏 Acknowledgments
 
-- **NASA POWER**, pelos dados abertos de agroclimatologia.
-- Organização do **NASA Space Apps Hackathon**.
-- Aos agricultores familiares, que inspiram este projeto.
+- **NASA POWER**, for open agroclimatology data.
+- The **NASA Space Apps Hackathon** organizers.
+- Family farmers, who inspire this project.
