@@ -1,115 +1,110 @@
-import {
-  Tabs,
-  TabList,
-  TabTrigger,
-  TabSlot,
-  TabTriggerSlotProps,
-  TabListProps,
-} from 'expo-router/ui';
-import { SymbolView } from 'expo-symbols';
-import { Pressable, useColorScheme, View, StyleSheet } from 'react-native';
+import { type Href } from 'expo-router';
+import { Tabs, TabList, TabSlot, TabTrigger, type TabTriggerSlotProps } from 'expo-router/ui';
+import { forwardRef, type ElementRef } from 'react';
+import { Pressable, StyleSheet, View } from 'react-native';
 
-import { Colors, MaxContentWidth, Spacing } from '@/constants/theme';
+import { Icon } from './ui/icon';
+import { AppText } from './ui/text';
 
-import { ExternalLink } from './external-link';
-import { ThemedText } from './themed-text';
-import { ThemedView } from './themed-view';
+import { Brand, Radii, Shadows, Spacing } from '@/constants/theme';
+import type { IconName } from '@/types';
 
-export default function AppTabs() {
+type TabItem = {
+  name: string;
+  href: Href;
+  label: string;
+  icon: IconName;
+};
+
+const tabs: TabItem[] = [
+  { name: 'index', href: '/', label: 'Início', icon: 'home-variant-outline' },
+  { name: 'clima', href: '/clima', label: 'Clima', icon: 'weather-partly-cloudy' },
+  { name: 'lavouras', href: '/lavouras', label: 'Lavouras', icon: 'sprout' },
+  { name: 'mercado', href: '/mercado', label: 'Mercado', icon: 'storefront-outline' },
+  { name: 'caderneta', href: '/caderneta', label: 'Caderneta', icon: 'notebook-outline' },
+];
+
+/**
+ * Layout de abas para web (a barra nativa não existe no navegador).
+ * Mantém a mesma navegação das abas nativas, com visual da marca.
+ */
+export default function AppTabsWeb() {
   return (
-    <Tabs>
-      <TabSlot style={{ height: '100%' }} />
-      <TabList asChild>
-        <CustomTabList>
-          <TabTrigger name="home" href="/" asChild>
-            <TabButton>Home</TabButton>
-          </TabTrigger>
-          <TabTrigger name="explore" href="/explore" asChild>
-            <TabButton>Explore</TabButton>
-          </TabTrigger>
-        </CustomTabList>
+    <Tabs style={styles.root}>
+      <TabSlot style={styles.slot} />
+      <TabList style={styles.tabList}>
+        <View style={styles.tabBar}>
+          {tabs.map((tab) => (
+            <TabTrigger key={tab.name} name={tab.name} href={tab.href} asChild>
+              <WebTabButton icon={tab.icon}>{tab.label}</WebTabButton>
+            </TabTrigger>
+          ))}
+        </View>
       </TabList>
     </Tabs>
   );
 }
 
-export function TabButton({ children, isFocused, ...props }: TabTriggerSlotProps) {
-  return (
-    <Pressable {...props} style={({ pressed }) => pressed && styles.pressed}>
-      <ThemedView
-        type={isFocused ? 'backgroundSelected' : 'backgroundElement'}
-        style={styles.tabButtonView}>
-        <ThemedText type="small" themeColor={isFocused ? 'text' : 'textSecondary'}>
+/**
+ * `asChild` exige que o componente aceite e encaminhe `ref`.
+ * Por isso usamos forwardRef em volta do Pressable.
+ */
+const WebTabButton = forwardRef<ElementRef<typeof Pressable>, TabTriggerSlotProps & { icon: IconName }>(
+  function WebTabButton({ children, isFocused, icon, style, ...props }, ref) {
+    return (
+      <Pressable
+        ref={ref}
+        {...props}
+        style={({ pressed }) => [styles.tab, pressed && styles.pressed]}>
+        <Icon name={icon} size={20} color={isFocused ? Brand.green : Brand.textMuted} />
+        <AppText
+          variant="caption"
+          tone={isFocused ? 'brand' : 'muted'}
+          style={isFocused ? styles.labelFocused : undefined}>
           {children}
-        </ThemedText>
-      </ThemedView>
-    </Pressable>
-  );
-}
-
-export function CustomTabList(props: TabListProps) {
-  const scheme = useColorScheme();
-  const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
-
-  return (
-    <View {...props} style={styles.tabListContainer}>
-      <ThemedView type="backgroundElement" style={styles.innerContainer}>
-        <ThemedText type="smallBold" style={styles.brandText}>
-          Expo Starter
-        </ThemedText>
-
-        {props.children}
-
-        <ExternalLink href="https://docs.expo.dev" asChild>
-          <Pressable style={styles.externalPressable}>
-            <ThemedText type="link">Docs</ThemedText>
-            <SymbolView
-              tintColor={colors.text}
-              name={{ ios: 'arrow.up.right.square', web: 'link' }}
-              size={12}
-            />
-          </Pressable>
-        </ExternalLink>
-      </ThemedView>
-    </View>
-  );
-}
+        </AppText>
+      </Pressable>
+    );
+  },
+);
 
 const styles = StyleSheet.create({
-  tabListContainer: {
-    position: 'absolute',
-    width: '100%',
-    padding: Spacing.three,
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'row',
+  root: {
+    flex: 1,
+    backgroundColor: Brand.cream,
   },
-  innerContainer: {
+  slot: {
+    flex: 1,
+  },
+  tabList: {
+    paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.five,
-    borderRadius: Spacing.five,
+    backgroundColor: Brand.cream,
+  },
+  tabBar: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: Spacing.one,
+    alignSelf: 'center',
+    backgroundColor: Brand.surface,
+    borderRadius: Radii.pill,
+    borderWidth: 1,
+    borderColor: Brand.border,
+    padding: Spacing.one,
+    ...Shadows.floating,
+  },
+  tab: {
     flexDirection: 'row',
     alignItems: 'center',
-    flexGrow: 1,
-    gap: Spacing.two,
-    maxWidth: MaxContentWidth,
+    gap: 6,
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.three,
+    borderRadius: Radii.pill,
   },
-  brandText: {
-    marginRight: 'auto',
+  labelFocused: {
+    fontWeight: '700',
   },
   pressed: {
     opacity: 0.7,
-  },
-  tabButtonView: {
-    paddingVertical: Spacing.one,
-    paddingHorizontal: Spacing.three,
-    borderRadius: Spacing.three,
-  },
-  externalPressable: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: Spacing.one,
-    marginLeft: Spacing.three,
   },
 });

@@ -1,43 +1,85 @@
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
-# dependencies
+# ─── Dependências ───────────────────────────────────────────
 node_modules/
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
 
-# Expo
+# ─── Expo / Metro ───────────────────────────────────────────
 .expo/
+.expo-shared/
 dist/
 web-build/
 expo-env.d.ts
+.metro-health-check*
 
-# Native
+# ─── Pastas nativas geradas (prebuild) ──────────────────────
+/ios
+/android
 .kotlin/
-*.orig.*
+
+# ─── Builds e EAS ───────────────────────────────────────────
+*.apk
+*.aab
+*.ipa
+*.app
+eas.local.json
+
+# ─── Chaves, certificados e segredos ────────────────────────
 *.jks
+*.keystore
 *.p8
 *.p12
 *.key
+*.pem
 *.mobileprovision
+google-services.json
+GoogleService-Info.plist
+.env
+.env.*
+!.env.example
 
-# Metro
-.metro-health-check*
+# ─── TypeScript / ESLint / testes ───────────────────────────
+*.tsbuildinfo
+.eslintcache
+coverage/
 
-# debug
+# ─── Logs ───────────────────────────────────────────────────
+*.log
 npm-debug.*
 yarn-debug.*
 yarn-error.*
+pnpm-debug.log*
 
-# macOS
+# ─── Banco SQLite local (dados de teste no dev) ─────────────
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# ─── Editor / IDE ───────────────────────────────────────────
+# Mantém só as configurações compartilhadas do VS Code.
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+
+# ─── Claude Code (arquivos locais) ──────────────────────────
+.claude/settings.local.json
+
+# ─── Sistema operacional ────────────────────────────────────
 .DS_Store
-*.pem
+Thumbs.db
+Desktop.ini
 
-# local env files
-.env*.local
-
-# typescript
-*.tsbuildinfo
-
-example
-
-# generated native folders
-/ios
-/android
+# ─── Temporários ────────────────────────────────────────────
+*.orig
+*.orig.*
+*.tmp
+*.zip
