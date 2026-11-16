@@ -1,4 +1,9 @@
-/** Constantes, agregações e textos simples das previsões climáticas para o produtor. */
+/**
+ * Constantes, agregações e textos simples dos cenários de clima para o produtor.
+ *
+ * Os cenários são grupos de anos reais da NASA POWER (1985–2024), não projeções
+ * futuras. Veja `src/services/nasa-projection.ts`.
+ */
 
 import type {
   ClimateScenario,
@@ -7,16 +12,12 @@ import type {
   ProjectionSource,
 } from '@/types';
 
-export const PROJECTION_YEAR_MIN = 2025;
-export const PROJECTION_YEAR_MAX = 2096;
-export const PROJECTION_YEAR_SPAN = 5;
-
 export const SCENARIOS: ClimateScenario[] = ['ssp126', 'ssp245', 'ssp370'];
 
 export const SCENARIO_LABELS: Record<ClimateScenario, string> = {
-  ssp126: 'Ano com mais chuva',
-  ssp245: 'Clima normal da região',
-  ssp370: 'Ano mais quente e seco',
+  ssp126: 'Como nos anos mais chuvosos',
+  ssp245: 'Média dos últimos 40 anos',
+  ssp370: 'Como nos anos mais secos',
 };
 
 export const SCENARIO_SHORT_LABELS: Record<ClimateScenario, string> = {
@@ -26,9 +27,9 @@ export const SCENARIO_SHORT_LABELS: Record<ClimateScenario, string> = {
 };
 
 export const SCENARIO_DESCRIPTIONS: Record<ClimateScenario, string> = {
-  ssp126: 'Cenário com chuvas mais regulares e temperaturas mais amenas.',
-  ssp245: 'Cenário esperado seguindo o comportamento normal dos últimos anos.',
-  ssp370: 'Cenário com menos chuva e calor mais forte durante a safra.',
+  ssp126: 'Média dos 10 anos com mais chuva entre 1985 e 2024 (NASA POWER).',
+  ssp245: 'Média de todos os anos de 1985 a 2024 (NASA POWER).',
+  ssp370: 'Média dos 10 anos com menos chuva entre 1985 e 2024 (NASA POWER).',
 };
 
 export const MONTH_LABELS = [
@@ -45,10 +46,6 @@ export const MONTH_LABELS = [
   'Nov',
   'Dez',
 ] as const;
-
-export const PROJECTION_DOCS_URL = 'https://power.larc.nasa.gov/docs/services/api/projection/';
-export const NEX_GDDP_DOCS_URL =
-  'https://www.nccs.nasa.gov/services/data-collections/land-based-products/nex-gddp-cmip6';
 
 export function daysInMonth(month: number) {
   return new Date(Date.UTC(2023, month, 0)).getUTCDate();
@@ -81,14 +78,12 @@ export function temperatureChange(annual: ProjectionAnnual) {
   return round(annual.projectedTempC - annual.baselineTempC, 1);
 }
 
-export function projectionSourceLabel(source: ProjectionSource) {
-  return source === 'nasa-power' ? 'Satélite NASA · Clima' : 'Satélite NASA · Região';
+export function projectionSourceLabel(_source: ProjectionSource) {
+  return 'NASA POWER · 1985 a 2024';
 }
 
-export function projectionSourceDescription(source: ProjectionSource) {
-  return source === 'nasa-power'
-    ? 'Estimativa feita com dados de satélite da NASA para a sua propriedade.'
-    : 'Estimativa climática da NASA ajustada para a região da sua propriedade.';
+export function projectionSourceDescription(_source: ProjectionSource) {
+  return 'Dados de satélite da NASA POWER, 1985 a 2024, para a coordenada da sua propriedade.';
 }
 
 export function formatSignedNumber(value: number, digits = 1) {

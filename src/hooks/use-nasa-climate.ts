@@ -81,7 +81,9 @@ export function useNasaClimate() {
   );
 
   const snapshot = isCurrent && result ? result.snapshot : placeholder;
-  const loading = locating || refreshing || (!!location && !isCurrent);
+  // Com uma localização já em uso (real ou o local padrão), o GPS ainda procurando
+  // não deixa a tela em "atualizando": só a consulta à NASA conta.
+  const loading = (locating && !location) || refreshing || (!!location && !isCurrent);
   const error = isCurrent && result ? result.error : location ? null : locationError;
 
   /** Usado pelo pull-to-refresh e pelos botões de atualizar. */

@@ -20,7 +20,7 @@ import { Icon } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
 import { Screen } from '@/components/ui/screen';
 import { AppText } from '@/components/ui/text';
-import { Brand, Radii, Spacing } from '@/constants/theme';
+import { Brand, PhoneFrameWidth, Radii, Spacing } from '@/constants/theme';
 import type { NewActivityInput } from '@/db/repository';
 import { useActivities } from '@/hooks/use-activities';
 import { useCrops } from '@/hooks/use-crops';
@@ -69,7 +69,7 @@ export default function CropsScreen() {
   function handleDelete(crop: Crop) {
     Alert.alert(
       'Remover plantação',
-      `Tem certeza que deseja apagar ${crop.name}? As anotações da caderneta continuam salvas.`,
+      `Tem certeza que deseja apagar ${crop.name}? As anotações dessa plantação na caderneta também serão apagadas.`,
       [
         { text: 'Cancelar', style: 'cancel' },
         {
@@ -452,6 +452,8 @@ const styles = StyleSheet.create({
   },
   keyboardView: {
     width: '100%',
+    maxWidth: PhoneFrameWidth,
+    alignSelf: 'center',
   },
   sheet: {
     backgroundColor: Brand.surface,

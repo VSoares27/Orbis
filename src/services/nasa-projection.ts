@@ -1,267 +1,331 @@
 /**
- * Projeções climáticas para a localização do aparelho.
+ * Cenários de chuva e temperatura para a localização do aparelho.
  *
- * 1. A climatologia de referência vem da API mensal histórica da NASA POWER
- *    (2015–2019), que cobre o Brasil.
- * 2. O cenário futuro é tentado primeiro na Climate Projection API da NASA
- *    POWER (ensemble CMIP6).
- * 3. Quando a API de projeção não cobre o ponto (caso do Brasil), aplica
- *    um modelo calibrado sobre a climatologia histórica real da NASA POWER,
- *    garantindo resposta imediata sem baixar arquivos NetCDF pesados no celular.
+ * Não há projeção futura aqui. Os três cenários são grupos de anos que
+ * aconteceram de verdade na coordenada, segundo a API mensal histórica da
+ * NASA POWER (1985–2024):
+ *
+ * - `ssp126` ("Mais chuva"): média dos 10 anos mais chuvosos;
+ * - `ssp245` ("Normal"): média dos 40 anos;
+ * - `ssp370` ("Mais seco"): média dos 10 anos mais secos.
+ *
+ * "Mais chuvoso" e "mais seco" usam a chuva total do ano civil. A temperatura
+ * de cada cenário é a média do mesmo grupo de anos.
+ *
+ * Se a consulta online falhar perto de Serra Talhada (até 0,75°), usa a cópia
+ * da NASA POWER embutida no app (`src/data/serra-talhada-clima.json`). Em
+ * qualquer outro lugar, lança erro: não inventamos dados.
+ *
+ * As chaves `ssp*` foram mantidas só porque são o contrato com as telas.
+ * A API de projeção da NASA POWER (CMIP6) não cobre o Brasil, por isso não é
+ * consultada.
  */
 
+import { buildAnnual, MONTH_LABELS } from '@/lib/projection';
 import {
-  PROJECTION_YEAR_MAX,
-  PROJECTION_YEAR_MIN,
-  PROJECTION_YEAR_SPAN,
-  buildAnnual,
-  daysInMonth,
-  MONTH_LABELS,
-} from '@/lib/projection';
-import type {
-  ClimateProjection,
-  ClimateScenario,
-  FarmLocation,
-  MonthlyProjection,
-  ProjectionSource,
-} from '@/types';
+  embeddedSerraTalhadaYears,
+  isNearSerraTalhada,
+  SERRA_TALHADA_ACCESSED_PT,
+  type MonthValues,
+  type YearSeries,
+} from '@/lib/serra-talhada';
+import type { ClimateProjection, ClimateScenario, FarmLocation, MonthlyProjection } from '@/types';
+
+export type { MonthValues, YearSeries } from '@/lib/serra-talhada';
 
 const POWER_MONTHLY_URL = 'https://power.larc.nasa.gov/api/temporal/monthly/point';
-const POWER_PROJECTION_URL = 'https://power.larc.nasa.gov/api/projection/monthly/point';
 
-const BASELINE_START_YEAR = 1985;
-const BASELINE_END_YEAR = 2024;
+const HISTORY_START_YEAR = 1985;
+const HISTORY_END_YEAR = 2024;
+/** Quantos anos entram nos grupos "mais chuvosos" e "mais secos". */
+const EXTREME_GROUP_SIZE = 10;
+/** Abaixo disso a amostra é pequena demais para separar os grupos. */
+const MIN_COMPLETE_YEARS = 20;
 const FILL_VALUE = -999;
 const REQUEST_TIMEOUT_MS = 12_000;
 
+export const PROJECTION_ERROR_MESSAGE =
+  'Não foi possível obter os dados históricos de chuva e temperatura.';
+
+export const OFFLINE_FALLBACK_NOTE =
+  `Dados da NASA POWER salvos no app (acessados em ${SERRA_TALHADA_ACCESSED_PT}), usados porque a consulta online falhou.`;
+
+/**
+ * Depois de uma falha online perto de Serra Talhada, usa direto os dados
+ * embutidos por este tempo, para trocar de cenário sem esperar outro timeout.
+ */
+const OFFLINE_RETRY_AFTER_MS = 2 * 60_000;
+
+/** Histórico ano a ano por coordenada (troca de cenário sem nova chamada). */
+const yearsCache = new Map<string, Promise<YearSeries[] | null>>();
+/** Resultado pronto por coordenada + cenário. */
 const projectionCache = new Map<string, ClimateProjection>();
+/** Quando a última consulta online falhou, por coordenada. */
+const lastFailureAt = new Map<string, number>();
 
 type ParameterSeries = Record<string, number>;
 
 type PowerMonthlyResponse = {
   properties?: {
-    parameter?: Record<string, ParameterSeries | Record<string, ParameterSeries>>;
+    parameter?: Record<string, ParameterSeries>;
   };
-};
-
-type MonthlySeries = {
-  rainMm: number;
-  tempC: number;
-};
-
-type ProjectionTarget = {
-  months: MonthlySeries[];
-  source: ProjectionSource;
-  model: string;
 };
 
 /**
  * Busca a comparação completa para uma localização e cenário.
+ *
+ * `startYear` é ignorado: os cenários vêm de anos reais já observados
+ * (1985–2024), e não de uma janela futura. O parâmetro continua na assinatura
+ * para não mudar o hook `useNasaProjection` nem o card do simulador.
  */
 export async function fetchNasaProjection(
   location: FarmLocation,
-  startYear: number,
+  _startYear: number,
   scenario: ClimateScenario,
 ): Promise<ClimateProjection> {
-  const safeStart = clamp(
-    Math.round(startYear),
-    PROJECTION_YEAR_MIN,
-    PROJECTION_YEAR_MAX,
-  );
-  const endYear = Math.min(safeStart + PROJECTION_YEAR_SPAN - 1, 2100);
-
-  const cacheKey = `${location.latitude.toFixed(2)},${location.longitude.toFixed(2)}:${safeStart}:${scenario}`;
+  const coordKey = coordinateKey(location);
+  const cacheKey = `${coordKey}:${scenario}`;
   const cached = projectionCache.get(cacheKey);
   if (cached) return cached;
 
-  const baseline = await fetchPowerBaseline(location);
-  if (!baseline) {
-    throw new Error('Não foi possível obter os dados históricos de chuva e temperatura.');
+  const nearSerraTalhada = isNearSerraTalhada(location.latitude, location.longitude);
+  const failedAt = lastFailureAt.get(coordKey);
+  const recentlyFailed =
+    failedAt !== undefined && Date.now() - failedAt < OFFLINE_RETRY_AFTER_MS;
+
+  const years = nearSerraTalhada && recentlyFailed ? null : await loadYearSeries(location);
+
+  if (years) {
+    lastFailureAt.delete(coordKey);
+    const result = buildProjectionFromYears(location, years, scenario);
+    projectionCache.set(cacheKey, result);
+    return result;
   }
 
-  const notes: string[] = [];
-  let target = await fetchPowerProjection(location, safeStart, endYear, scenario);
+  if (!recentlyFailed) lastFailureAt.set(coordKey, Date.now());
 
-  // Como a API de projeção da NASA POWER ainda não cobre o Brasil,
-  // calculamos a projeção diretamente sobre a climatologia histórica real (2015–2019)
-  // da NASA POWER para a coordenada, evitando travar o celular baixando NetCDFs pesados.
-  if (!target) {
-    const tempOffset = scenario === 'ssp126' ? 0.8 : scenario === 'ssp245' ? 1.4 : 2.2;
-    const rainFactor = scenario === 'ssp126' ? 0.98 : scenario === 'ssp245' ? 0.93 : 0.87;
-
-    target = {
-      source: 'nex-gddp',
-      model: 'ACCESS-CM2 (Calibrado)',
-      months: baseline.map((m) => ({
-        rainMm: round(m.rainMm * rainFactor, 0),
-        tempC: round(m.tempC + tempOffset, 1),
-      })),
-    };
-    notes.push(
-      'Estimativa calculada com base nos dados históricos reais da NASA para a sua propriedade.',
-    );
+  if (!nearSerraTalhada) {
+    throw new Error(PROJECTION_ERROR_MESSAGE);
   }
+
+  // Sem cache: quando a rede voltar, a próxima consulta busca os dados online.
+  return buildProjectionFromYears(location, embeddedSerraTalhadaYears(), scenario, [
+    OFFLINE_FALLBACK_NOTE,
+  ]);
+}
+
+/** Só para scripts de verificação: esquece caches e falhas anteriores. */
+export function resetProjectionCache() {
+  yearsCache.clear();
+  projectionCache.clear();
+  lastFailureAt.clear();
+}
+
+/**
+ * Média mensal do grupo de anos que define o cenário (função pura).
+ * Chuva arredondada para 0 casas e temperatura para 1 casa.
+ */
+export function buildScenario(years: YearSeries[], scenario: ClimateScenario): MonthValues[] {
+  const group = scenarioYears(years, scenario);
+  if (group.length === 0) {
+    throw new Error('Sem anos suficientes para montar o cenário.');
+  }
+
+  return Array.from({ length: 12 }, (_, index) => ({
+    rainMm: round(average(group.map((year) => year.months[index].rainMm)), 0),
+    tempC: round(average(group.map((year) => year.months[index].tempC)), 1),
+  }));
+}
+
+/** Anos que entram no cenário, em ordem cronológica. */
+export function scenarioYears(years: YearSeries[], scenario: ClimateScenario): YearSeries[] {
+  const complete = years.filter(isCompleteYear);
+  if (scenario === 'ssp245') {
+    return [...complete].sort((a, b) => a.year - b.year);
+  }
+
+  const byRain = [...complete].sort((a, b) => a.rainMm - b.rainMm || a.year - b.year);
+  const size = Math.min(EXTREME_GROUP_SIZE, byRain.length);
+  const group = scenario === 'ssp370' ? byRain.slice(0, size) : byRain.slice(-size);
+  return group.sort((a, b) => a.year - b.year);
+}
+
+/** Monta o `ClimateProjection` que as telas esperam a partir dos anos reais. */
+export function buildProjectionFromYears(
+  location: FarmLocation,
+  years: YearSeries[],
+  scenario: ClimateScenario,
+  extraNotes: string[] = [],
+): ClimateProjection {
+  const complete = years.filter(isCompleteYear);
+  const baseline = buildScenario(complete, 'ssp245');
+  const projected = scenario === 'ssp245' ? baseline : buildScenario(complete, scenario);
 
   const months: MonthlyProjection[] = baseline.map((month, index) => ({
     month: index + 1,
     label: MONTH_LABELS[index],
     baselineRainMm: month.rainMm,
-    projectedRainMm: target.months[index]?.rainMm ?? 0,
+    projectedRainMm: projected[index].rainMm,
     baselineTempC: month.tempC,
-    projectedTempC: target.months[index]?.tempC ?? 0,
+    projectedTempC: projected[index].tempC,
   }));
 
-  notes.push(
-    `Média de ${PROJECTION_YEAR_SPAN} anos (${safeStart}–${endYear}) para dar mais segurança ao planejamento da safra.`,
-  );
+  const yearNumbers = complete.map((year) => year.year);
+  const startYear = Math.min(...yearNumbers);
+  const endYear = Math.max(...yearNumbers);
 
-  const result: ClimateProjection = {
+  return {
     location,
     scenario,
-    startYear: safeStart,
+    startYear,
     endYear,
-    source: target.source,
-    model: target.model,
+    source: 'nasa-power',
+    model: `NASA POWER — anos reais ${startYear}–${endYear}`,
     updatedAt: new Date().toISOString(),
     months,
     annual: buildAnnual(months),
-    notes,
+    notes: [scenarioNote(complete, scenario, startYear, endYear), ...extraNotes],
   };
-
-  projectionCache.set(cacheKey, result);
-  return result;
 }
 
-/** Climatologia mensal de referência (média diária de chuva e temperatura). */
-async function fetchPowerBaseline(location: FarmLocation): Promise<MonthlySeries[] | null> {
+function scenarioNote(
+  years: YearSeries[],
+  scenario: ClimateScenario,
+  startYear: number,
+  endYear: number,
+) {
+  const group = scenarioYears(years, scenario);
+  const list = group.map((year) => year.year).join(', ');
+
+  if (scenario === 'ssp126') {
+    return `Mais chuva: média dos ${group.length} anos com mais chuva desde ${startYear} (${list}).`;
+  }
+  if (scenario === 'ssp370') {
+    return `Mais seco: média dos ${group.length} anos com menos chuva desde ${startYear} (${list}).`;
+  }
+  return `Normal: média dos ${group.length} anos de ${startYear} a ${endYear}.`;
+}
+
+/** Histórico ano a ano da coordenada, com uma única chamada por coordenada. */
+function loadYearSeries(location: FarmLocation): Promise<YearSeries[] | null> {
+  const key = coordinateKey(location);
+  const pending = yearsCache.get(key);
+  if (pending) return pending;
+
+  const request = fetchPowerYears(location).then((years) => {
+    // Falhas não ficam no cache, para a próxima consulta tentar de novo.
+    if (!years) yearsCache.delete(key);
+    return years;
+  });
+  yearsCache.set(key, request);
+  return request;
+}
+
+/** Chuva e temperatura mês a mês, ano a ano, na API mensal da NASA POWER. */
+async function fetchPowerYears(location: FarmLocation): Promise<YearSeries[] | null> {
   const url =
-    `${POWER_MONTHLY_URL}?parameters=T2M,PRECTOTCORR` +
+    `${POWER_MONTHLY_URL}?parameters=T2M,PRECTOTCORR_SUM,PRECTOTCORR` +
     '&community=AG' +
     `&longitude=${location.longitude}` +
     `&latitude=${location.latitude}` +
-    `&start=${BASELINE_START_YEAR}` +
-    `&end=${BASELINE_END_YEAR}` +
+    `&start=${HISTORY_START_YEAR}` +
+    `&end=${HISTORY_END_YEAR}` +
     '&format=JSON' +
     '&units=metric';
 
   try {
     const payload = await fetchJson<PowerMonthlyResponse>(url);
     const parameter = payload.properties?.parameter;
-    const temp = parameter?.T2M;
-    const rain = parameter?.PRECTOTCORR;
-
-    if (!isSeries(temp) || !isSeries(rain)) return null;
-
-    return aggregatePowerSeries(temp, rain);
+    const years = parsePowerYears(
+      parameter?.T2M,
+      parameter?.PRECTOTCORR_SUM,
+      parameter?.PRECTOTCORR,
+    );
+    return years.length >= MIN_COMPLETE_YEARS ? years : null;
   } catch (error) {
-    if (__DEV__) {
-      console.warn('[NASA POWER] falha na climatologia mensal:', error);
+    if (typeof __DEV__ !== 'undefined' && __DEV__) {
+      console.warn('[NASA POWER] falha no histórico mensal:', error);
     }
     return null;
   }
 }
 
-/** Projeção mensal da NASA POWER para locais cobertos pela API beta. */
-async function fetchPowerProjection(
-  location: FarmLocation,
-  startYear: number,
-  endYear: number,
-  scenario: ClimateScenario,
-): Promise<ProjectionTarget | null> {
-  const url =
-    `${POWER_PROJECTION_URL}?parameters=T2M,PRECTOTCORR` +
-    '&community=AG' +
-    `&longitude=${location.longitude}` +
-    `&latitude=${location.latitude}` +
-    `&start=${startYear}01` +
-    `&end=${endYear}12` +
-    '&format=JSON' +
-    '&time-standard=UTC' +
-    `&scenario=${scenario}` +
-    '&model=ensemble';
+/**
+ * Converte a resposta da API mensal em `YearSeries[]`.
+ *
+ * - `PRECTOTCORR_SUM` é o total do mês em mm. Se faltar, usa `PRECTOTCORR`
+ *   (média diária em mm/dia) × dias daquele mês, contando anos bissextos.
+ * - Chaves com mês `13` (total do ano) e valores `-999` são ignorados.
+ * - Só entram anos com os 12 meses válidos.
+ */
+export function parsePowerYears(
+  temp: ParameterSeries | undefined,
+  rainSum: ParameterSeries | undefined,
+  rainDaily: ParameterSeries | undefined,
+): YearSeries[] {
+  if (!isSeries(temp) || (!isSeries(rainSum) && !isSeries(rainDaily))) return [];
 
-  try {
-    const payload = await fetchJson<PowerMonthlyResponse>(url);
-    const parameter = payload.properties?.parameter;
-    const temp = parameter?.T2M;
-    const rain = parameter?.PRECTOTCORR;
+  const years: YearSeries[] = [];
 
-    if (!isNestedSeries(temp) || !isNestedSeries(rain)) return null;
+  for (let year = HISTORY_START_YEAR; year <= HISTORY_END_YEAR; year += 1) {
+    const months: MonthValues[] = [];
 
-    const tempScenario = temp[scenario];
-    const rainScenario = rain[scenario];
-    if (!tempScenario || !rainScenario) return null;
+    for (let month = 1; month <= 12; month += 1) {
+      const key = `${year}${String(month).padStart(2, '0')}`;
+      const tempC = temp[key];
+      const sum = rainSum?.[key];
+      const daily = rainDaily?.[key];
 
-    const monthly = aggregatePowerSeries(tempScenario, rainScenario);
-    if (!monthly) return null;
+      let rainMm: number | null = null;
+      if (isValid(sum)) rainMm = sum;
+      else if (isValid(daily)) rainMm = daily * daysInMonthOfYear(year, month);
 
-    return {
-      months: monthly,
-      source: 'nasa-power',
-      model: 'Ensemble CMIP6',
-    };
-  } catch {
-    return null;
+      if (rainMm === null || !isValid(tempC)) break;
+      months.push({ rainMm: round(rainMm, 1), tempC: round(tempC, 2) });
+    }
+
+    if (months.length === 12) {
+      years.push({
+        year,
+        rainMm: round(
+          months.reduce((total, month) => total + month.rainMm, 0),
+          1,
+        ),
+        months,
+      });
+    }
   }
+
+  return years;
 }
 
-/** Converte séries diárias mensais da NASA POWER em totais mensais. */
-function aggregatePowerSeries(
-  temp: ParameterSeries,
-  rain: ParameterSeries,
-): MonthlySeries[] | null {
-  const tempBuckets = Array.from({ length: 12 }, () => ({ sum: 0, count: 0 }));
-  const rainBuckets = Array.from({ length: 12 }, () => ({ sum: 0, count: 0 }));
-
-  for (const [key, value] of Object.entries(temp)) {
-    const month = monthFromKey(key);
-    if (month < 0 || !isValid(value)) continue;
-    tempBuckets[month].sum += value;
-    tempBuckets[month].count += 1;
-  }
-
-  for (const [key, value] of Object.entries(rain)) {
-    const month = monthFromKey(key);
-    if (month < 0 || !isValid(value)) continue;
-    rainBuckets[month].sum += value;
-    rainBuckets[month].count += 1;
-  }
-
-  const months: MonthlySeries[] = [];
-
-  for (let index = 0; index < 12; index += 1) {
-    if (tempBuckets[index].count === 0 || rainBuckets[index].count === 0) return null;
-
-    months.push({
-      rainMm: round(
-        (rainBuckets[index].sum / rainBuckets[index].count) * daysInMonth(index + 1),
-        0,
-      ),
-      tempC: round(tempBuckets[index].sum / tempBuckets[index].count, 1),
-    });
-  }
-
-  return months;
+function isCompleteYear(year: YearSeries) {
+  return (
+    year.months.length === 12 &&
+    Number.isFinite(year.rainMm) &&
+    year.months.every((month) => isValid(month.rainMm) && isValid(month.tempC))
+  );
 }
 
-function monthFromKey(key: string) {
-  const month = Number(key.slice(4, 6));
-  if (!Number.isFinite(month) || month < 1 || month > 12) return -1;
-  return month - 1;
+function coordinateKey(location: FarmLocation) {
+  return `${location.latitude.toFixed(2)},${location.longitude.toFixed(2)}`;
+}
+
+function daysInMonthOfYear(year: number, month: number) {
+  return new Date(Date.UTC(year, month, 0)).getUTCDate();
 }
 
 function isSeries(value: unknown): value is ParameterSeries {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function isNestedSeries(
-  value: unknown,
-): value is Record<string, ParameterSeries> {
-  return isSeries(value);
-}
-
-function isValid(value: number) {
-  return Number.isFinite(value) && value !== FILL_VALUE && Math.abs(value) < 1e19;
+function isValid(value: number | undefined | null): value is number {
+  return (
+    typeof value === 'number' &&
+    Number.isFinite(value) &&
+    value !== FILL_VALUE &&
+    Math.abs(value) < 1e19
+  );
 }
 
 async function fetchJson<T>(url: string): Promise<T> {
@@ -287,11 +351,12 @@ async function fetchWithTimeout(url: string, init?: RequestInit) {
   }
 }
 
+function average(values: number[]) {
+  if (values.length === 0) return 0;
+  return values.reduce((total, value) => total + value, 0) / values.length;
+}
+
 function round(value: number, digits: number) {
   const factor = 10 ** digits;
   return Math.round(value * factor) / factor;
-}
-
-function clamp(value: number, min: number, max: number) {
-  return Math.min(Math.max(value, min), max);
 }

@@ -10,6 +10,7 @@ import { AppText } from '@/components/ui/text';
 import { Brand } from '@/constants/theme';
 import { DeviceLocationProvider } from '@/context/device-location';
 import { migrateDbIfNeeded } from '@/db/schema';
+import '@/lib/web-alert';
 
 // Mantém a splash nativa visível até o primeiro render.
 SplashScreen.preventAutoHideAsync();

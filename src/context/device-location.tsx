@@ -4,6 +4,11 @@
  * O provedor pede permissão de primeiro plano, obtém a posição atual (com fallback
  * para última posição conhecida) e traduz as coordenadas para cidade/estado.
  * O clima e as simulações usam somente esta localização.
+ *
+ * Sem GPS (permissão negada ou erro), `location` recebe `DEFAULT_LOCATION`
+ * (Serra Talhada, PE), mas `status` e `error` continuam informando o problema.
+ * Se o pedido de permissão ficar 8 s sem resposta, também usa o local padrão.
+ * Se o GPS responder depois, a localização real substitui a padrão.
  */
 
 import * as Location from 'expo-location';
@@ -22,6 +27,26 @@ import { AppState, Linking, Platform } from 'react-native';
 import type { FarmLocation } from '@/types';
 
 type DeviceLocationStatus = 'loading' | 'ready' | 'denied' | 'error';
+
+/** Local usado quando o aparelho não informa a posição (região da análise das safras). */
+export const DEFAULT_LOCATION: FarmLocation = {
+  label: 'Local padrão',
+  city: 'Serra Talhada',
+  state: 'PE',
+  latitude: -7.988,
+  longitude: -38.2963,
+};
+
+/**
+ * Se o pedido de permissão ficar sem resposta (ex.: aviso do navegador ignorado),
+ * usa o local padrão depois deste tempo. O GPS real substitui quando responder.
+ */
+const LOCATION_WAIT_MS = 8_000;
+
+/** Mantém a última posição real, se houver; senão usa o local padrão. */
+function keepOrDefault(current: FarmLocation | null) {
+  return current ?? DEFAULT_LOCATION;
+}
 
 type DeviceLocationContextValue = {
   location: FarmLocation | null;
@@ -142,6 +167,7 @@ export function DeviceLocationProvider({ children }: { children: ReactNode }) {
       setCanAskAgain(permission.canAskAgain);
 
       if (!permission.granted) {
+        setLocation(keepOrDefault);
         setStatus('denied');
         setError(
           permission.canAskAgain
@@ -154,6 +180,7 @@ export function DeviceLocationProvider({ children }: { children: ReactNode }) {
       await fetchCoordinates();
     } catch (cause) {
       if (!mounted.current) return;
+      setLocation(keepOrDefault);
       setStatus('error');
       setError(
         cause instanceof Error
@@ -188,6 +215,7 @@ export function DeviceLocationProvider({ children }: { children: ReactNode }) {
       }
     } catch (cause) {
       if (!mounted.current) return;
+      setLocation(keepOrDefault);
       setStatus('error');
       setError(
         cause instanceof Error
@@ -209,7 +237,11 @@ export function DeviceLocationProvider({ children }: { children: ReactNode }) {
     if (bootstrapped.current) return;
     bootstrapped.current = true;
 
-    void refreshLocation();
+    const waitTimer = setTimeout(() => {
+      if (mounted.current) setLocation(keepOrDefault);
+    }, LOCATION_WAIT_MS);
+
+    void refreshLocation().finally(() => clearTimeout(waitTimer));
   }, [refreshLocation]);
 
   // Revalida automaticamente quando o usuário volta das Configurações do aparelho

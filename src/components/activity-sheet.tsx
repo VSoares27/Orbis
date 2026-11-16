@@ -15,7 +15,7 @@ import { Icon } from './ui/icon';
 import { Input } from './ui/input';
 import { AppText } from './ui/text';
 
-import { Brand, Radii, Spacing } from '@/constants/theme';
+import { Brand, PhoneFrameWidth, Radii, Spacing } from '@/constants/theme';
 import type { NewActivityInput } from '@/db/repository';
 import { activityTypeIcons, activityTypeLabels, activityTypes } from '@/lib/activities';
 import { formatActivityDate } from '@/lib/format';
@@ -235,6 +235,8 @@ const styles = StyleSheet.create({
   keyboardView: {
     flex: 1,
     width: '100%',
+    maxWidth: PhoneFrameWidth,
+    alignSelf: 'center',
     justifyContent: 'flex-end',
   },
   sheet: {
