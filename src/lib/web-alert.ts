@@ -15,8 +15,13 @@
 
 import { Alert, Platform, type AlertButton } from 'react-native';
 
+import { t } from './i18n';
+
+/** Monta o texto da caixa, traduzindo título e cada linha da mensagem. */
 function messageOf(title: string, message?: string) {
-  return message ? `${title}\n\n${message}` : title;
+  if (!message) return t(title);
+  const lines = message.split('\n').map((line) => t(line));
+  return `${t(title)}\n\n${lines.join('\n')}`;
 }
 
 function webAlert(title: string, message?: string, buttons?: AlertButton[]) {

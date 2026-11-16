@@ -1,6 +1,8 @@
+import { createElement, type ReactNode } from 'react';
 import { StyleSheet, Text, type TextProps } from 'react-native';
 
 import { Brand } from '@/constants/theme';
+import { lookup, t, useLanguage } from '@/lib/i18n';
 
 /**
  * Texto padrão do app.
@@ -47,8 +49,25 @@ const tones: Record<TextTone, string> = {
   success: Brand.success,
 };
 
-export function AppText({ variant = 'body', tone = 'primary', style, ...rest }: AppTextProps) {
-  return <Text style={[styles[variant], { color: tones[tone] }, style]} {...rest} />;
+export function AppText({ variant = 'body', tone = 'primary', style, children, ...rest }: AppTextProps) {
+  const language = useLanguage();
+  const props = { style: [styles[variant], { color: tones[tone] }, style], ...rest };
+  if (language === 'pt') return <Text {...props}>{children}</Text>;
+  return createElement(Text, props, ...translateChildren(children));
+}
+
+/**
+ * Traduz os filhos de um texto. Se forem só textos e números, traduz a frase
+ * inteira (ex.: "Nota ", 49, " de 100"); senão, traduz cada pedaço de texto.
+ */
+function translateChildren(children: ReactNode): ReactNode[] {
+  const list = Array.isArray(children) ? children : [children];
+  const primitives = list.every((child) => typeof child === 'string' || typeof child === 'number');
+  if (primitives && list.length > 1) {
+    const whole = lookup(list.join(''));
+    if (whole !== null) return [whole];
+  }
+  return list.map((child) => (typeof child === 'string' ? t(child) : child));
 }
 
 const styles = StyleSheet.create({
