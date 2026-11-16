@@ -9,6 +9,7 @@
  * internet, o hook `useNasaClimate` busca os dados reais da NASA POWER.
  */
 
+import { toLocalIsoDate } from '@/lib/format';
 import type {
   ClimateSnapshot,
   Crop,
@@ -19,7 +20,7 @@ import type {
 } from '@/types';
 
 function toIsoDate(date: Date) {
-  return date.toISOString().slice(0, 10);
+  return toLocalIsoDate(date);
 }
 
 function isoDaysAgo(days: number) {

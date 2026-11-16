@@ -4,6 +4,7 @@ import { Icon } from './icon';
 import { AppText } from './text';
 
 import { Brand, Radii, Spacing } from '@/constants/theme';
+import { t, useLanguage } from '@/lib/i18n';
 import type { IconName } from '@/types';
 
 type InputProps = TextInputProps & {
@@ -13,7 +14,8 @@ type InputProps = TextInputProps & {
 };
 
 /** Campo de texto com rótulo, ícone e dica opcionais. */
-export function Input({ label, icon, hint, style, ...rest }: InputProps) {
+export function Input({ label, icon, hint, style, placeholder, ...rest }: InputProps) {
+  useLanguage(); // redesenha o texto de exemplo ao trocar o idioma
   return (
     <View style={styles.wrapper}>
       {label && (
@@ -26,6 +28,7 @@ export function Input({ label, icon, hint, style, ...rest }: InputProps) {
         <TextInput
           placeholderTextColor={Brand.textMuted}
           style={[styles.input, style]}
+          placeholder={placeholder ? t(placeholder) : placeholder}
           {...rest}
         />
       </View>

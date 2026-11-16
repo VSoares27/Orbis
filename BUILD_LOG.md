@@ -21,6 +21,10 @@ Correções extras, autorizadas pelo João (incluem mudança em tela):
 - Radiação solar `-999` aparecia como 0 kWh/m² → repete a última leitura válida.
 - Selo "ATUALIZANDO" preso enquanto o GPS procura.
 - Texto de excluir lavoura agora avisa que as anotações também são apagadas (o banco usa `ON DELETE CASCADE`).
+- Idioma: botão PT/EN (`src/lib/i18n.ts`, `i18n-en.ts`); 404 em português; datas no fuso local; tentar de novo e notas dos dados no simulador.
+- Web: tocar nas abas não trocava de tela e nenhuma aparecia ativa (defeito do `TabTrigger` no export, já presente na `main`) → navegação por `router.navigate` e aba ativa por `usePathname`; abas com `role="tab"`.
+
+Testes de uso completos (48 combinações do simulador, CRUD, falhas de rede/GPS, telas de 320 px a computador): `docs/TESTES.md`.
 
 ## 2. Arquivos alterados
 - `src/services/nasa-projection.ts`: cenários de anos reais, cache por coordenada, fallback embutido.

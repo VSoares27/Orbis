@@ -24,7 +24,7 @@ import { Brand, PhoneFrameWidth, Radii, Spacing } from '@/constants/theme';
 import type { NewActivityInput } from '@/db/repository';
 import { useActivities } from '@/hooks/use-activities';
 import { useCrops } from '@/hooks/use-crops';
-import { formatDayMonth, formatNumber } from '@/lib/format';
+import { formatDayMonth, formatNumber, toLocalIsoDate } from '@/lib/format';
 import type { Crop, CropStatus } from '@/types';
 
 type FilterKey = 'todas' | CropStatus;
@@ -98,7 +98,7 @@ export default function CropsScreen() {
     if (!name || saving) return;
 
     const area = Number(form.area.replace(',', '.')) || 0.1;
-    const plantedAt = new Date().toISOString().slice(0, 10);
+    const plantedAt = toLocalIsoDate(new Date());
     const harvestDate = new Date();
     harvestDate.setDate(harvestDate.getDate() + 90);
 
@@ -108,7 +108,7 @@ export default function CropsScreen() {
       variety: form.variety.trim() || 'Comum da região',
       areaHectares: area,
       plantedAt,
-      harvestForecast: harvestDate.toISOString().slice(0, 10),
+      harvestForecast: toLocalIsoDate(harvestDate),
       status: 'saudavel',
       progress: 5,
       icon: 'sprout',

@@ -4,6 +4,7 @@ import { ActivityIndicator, Platform, Pressable, StyleSheet, View } from 'react-
 
 import { StatTile } from '@/components/stat-tile';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { BarChart, type BarDatum } from '@/components/ui/bar-chart';
 import { Card } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
@@ -43,7 +44,7 @@ export function PlantingSimulatorCard() {
   const plantingDate = useMemo(() => formatDateBR(dateObj), [dateObj]);
   const startYear = Math.max(2025, Math.min(2096, dateObj.getFullYear()));
 
-  const { projection, loading, error } = useNasaProjection(startYear, scenario);
+  const { projection, loading, error, refresh } = useNasaProjection(startYear, scenario);
 
   const simulation = useMemo(() => {
     if (!projection) return null;
@@ -265,12 +266,35 @@ function handleValueChange(_event: unknown, selected?: Date) {
               </View>
             ))}
           </View>
+
+          {/* De onde vêm os números do cenário (anos usados, dados salvos no app). */}
+          {projection && projection.notes.length > 0 && (
+            <View style={styles.notesBox}>
+              <Icon name="information-outline" size={16} color={Brand.textMuted} />
+              <View style={{ flex: 1, gap: 2 }}>
+                {projection.notes.map((note) => (
+                  <AppText key={note} variant="caption" tone="muted">
+                    {note}
+                  </AppText>
+                ))}
+              </View>
+            </View>
+          )}
         </>
       ) : (
         error && (
-          <AppText variant="caption" tone="danger">
-            Não foi possível carregar os dados do clima agora. Tente novamente.
-          </AppText>
+          <View style={styles.errorBox}>
+            <AppText variant="caption" tone="danger">
+              Não foi possível carregar os dados do clima agora. Tente novamente.
+            </AppText>
+            <Button
+              label="Tentar novamente"
+              icon="refresh"
+              variant="outline"
+              size="sm"
+              onPress={refresh}
+            />
+          </View>
         )
       )}
     </Card>
@@ -356,5 +380,14 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', gap: Spacing.two },
   chartSection: { gap: Spacing.one },
   adviceList: { gap: 6 },
+  notesBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+    paddingTop: Spacing.two,
+    borderTopWidth: 1,
+    borderTopColor: Brand.border,
+  },
+  errorBox: { gap: Spacing.two, alignItems: 'flex-start' },
   adviceRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 6 },
 });
