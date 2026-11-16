@@ -1,99 +1,125 @@
-# 🌱 Orbis
+<div align="center">
 
-> Climate simulations powered by NASA data to help family farmers decide **what to plant** and **when to plant**.
+<h1>🌱 Orbis</h1>
 
-[🇧🇷 Português](./README.br.md) · 🇺🇸 English
+<p><b>Before you plant, test the decision against 40 years of NASA data.</b><br/>
+A pocket planting advisor for family farmers in Brazil's semi-arid Sertão.</p>
 
-Built for the **NASA Space Apps Hackathon**, using the public **NASA POWER** (Prediction Of Worldwide Energy Resources) API.
+<p>
+  <a href="https://joaomanoel01s-team-orbis.expo.app/?lang=en"><img alt="Try the live demo" src="https://img.shields.io/badge/%E2%96%B6%20Live%20demo-open%20in%20English-164734?style=for-the-badge"/></a>
+  <a href="https://joaomanoel01s-team-orbis.expo.app/"><img alt="Demo em português" src="https://img.shields.io/badge/Demo-em%20portugu%C3%AAs-DCE8E1?style=for-the-badge&labelColor=DCE8E1&color=DCE8E1&logoColor=164734"/></a>
+</p>
+
+<p>
+  <img alt="NASA Space Apps 2026" src="https://img.shields.io/badge/NASA%20Space%20Apps-2026-0B3D91"/>
+  <img alt="Challenge" src="https://img.shields.io/badge/Challenge-Field%20Shift-164734"/>
+  <img alt="Data" src="https://img.shields.io/badge/Data-NASA%20POWER%201985%E2%80%932024-D97706"/>
+  <img alt="Team" src="https://img.shields.io/badge/Team-Agreste%20C%C3%B3smico-5A3E2B"/>
+  <img alt="Expo" src="https://img.shields.io/badge/Expo-SDK%2058-000020"/>
+  <img alt="License" src="https://img.shields.io/badge/License-MIT-lightgrey"/>
+</p>
+
+<sub>🇺🇸 English · <a href="./README.br.md">🇧🇷 Português</a></sub>
+
+<br/>
+
+<img src="docs/telas-en/0-desktop-frame-en.jpg" alt="Orbis planting simulator, shown inside a phone frame" width="520"/>
+
+</div>
 
 ---
 
-## 📖 About
+## 🌾 The problem
 
-Smallholder farmers feel climate unpredictability first-hand: rain that doesn't arrive, heat out of season, a lost harvest. Most forecasting tools are designed for large-scale producers, with technical language and little connection to the reality of people farming a few hectares.
+In the Sertão of Pernambuco, a family farmer plants once a year and bets the whole season on the first rains. In **Serra Talhada**, annual rainfall averages about **648 mm**, but a single year can bring **218 mm or 1,299 mm**. Between 1985–94 and 2015–24 the average fell from **683 mm to 547 mm**, and days at or above 35 °C went from **118 to 145 per year**. Forecast tools are built for large producers, speak in technical terms, and say little about the choice that matters: *what do I plant, and on which date?*
 
-**Orbis** is a mobile app (Android, iOS and web) that reads the phone's location, fetches NASA satellite data for that exact point, and answers in plain language questions like:
+## 💡 The idea
 
-- *How has the weather been on my farm over the last few days?*
-- *Do I need to irrigate today?*
-- *Which month should I plant maize, beans, soybean or cassava?*
-- *What if next year is drier or wetter than usual?*
+**Orbis turns 40 years of NASA satellite data into one clear answer for one field**, in plain language, on the phone the farmer already has.
 
-> The app's interface is in Brazilian Portuguese, since it targets Brazilian family farmers.
+1. **Open the app.** It reads the location (or falls back to Serra Talhada) and shows the real weather of the last days.
+2. **Pick a crop, a date and a kind of year.** The three "years" are not invented forecasts: they are **real years** that happened at that exact point.
+3. **Read the verdict.** A 0–100 score, the best planting window, expected rain, and a plain sentence like:
+   > *"In Serra Talhada, farmers who planted maize around Jan 21 in the last 10 years: rain fell short in 8 seasons, was tight in 1 and was enough in 1 (NASA POWER, 2015–2024)."*
+
+<table>
+<tr>
+<td align="center" width="25%"><img src="docs/telas-en/1-home-en.jpg" alt="Home" width="200"/><br/><sub><b>Home</b><br/>today's weather and alerts</sub></td>
+<td align="center" width="25%"><img src="docs/telas/2-clima-e-simulador.jpg" alt="Weather and simulator" width="200"/><br/><sub><b>Weather + Simulator</b><br/>score, best window, tips</sub></td>
+<td align="center" width="25%"><img src="docs/telas/4-lavouras.jpg" alt="Crops" width="200"/><br/><sub><b>Crops</b><br/>fields saved on the phone</sub></td>
+<td align="center" width="25%"><img src="docs/telas/6-caderneta.jpg" alt="Logbook" width="200"/><br/><sub><b>Logbook</b><br/>field diary, works offline</sub></td>
+</tr>
+</table>
+
+> 🌐 **For the judges:** the app has a **PT | EN button** (top right on desktop, last tab on a phone). Or open the demo with `?lang=en`.
+
+---
+
+## 🎯 How Orbis answers the evaluation criteria
+
+| Criterion | What we did |
+| --- | --- |
+| **Impact** | Targets the people who bear the most climate risk and have the least tooling: family farmers in the semi-arid region. It shows *the date risk* before the money and seed are in the ground: planting maize on Jan 21 fell short of rain in 8 of the last 10 seasons, versus 5 on Feb 11. It runs on a basic phone, keeps field notes offline, and speaks plain Portuguese. |
+| **Validity** | Every number traces to NASA POWER. Scenarios are **averages of real years** (no invented multipliers; we removed an early heuristic that mislabeled itself as CMIP6). The crop-season result uses the FAO-56 method (Hargreaves ETo × Kc) with sources in [`docs/REFERENCES.md`](./docs/REFERENCES.md), and every assumption and limit is declared in [`docs/METHODOLOGY.md`](./docs/METHODOLOGY.md). When data is missing, the app says so instead of guessing. |
+| **Relevance to the challenge** | *Field Shift: Adapting Farms with NASA Data*: NASA POWER daily and monthly series drive weather, irrigation advice, scenarios and the 40-season analysis, to help farms **adapt planting decisions** to a shifting climate. |
+| **Creativity** | Scenarios as *years that really happened* ("like the 10 wettest years", "like the 10 driest") rather than abstract climate models; a verdict farmers can read in one line; a data layer that degrades honestly (saved NASA data for Serra Talhada if the network fails). |
+| **Presentation** | Mobile-first interface in a phone frame on desktop, a bilingual live demo, an automated data check, and a documented method. |
 
 ## ✨ Features
 
 | Screen | What it does |
 | --- | --- |
-| **Home** | Greeting, today's weather, weekly rainfall, irrigation advice and automatic alerts (heavy rain, fungal-disease risk, strong wind for spraying). |
-| **Climate** | Daily series for the last 14 days at the device location, plus the **planting simulator**. |
-| **Crops** | Register crops (name, variety, area), track status and expected harvest. |
-| **Field Notebook** | Field diary: log irrigation, fertilizing, spraying, planting, harvesting and other tasks. |
-
-> 🛒 A **Market** screen (peer-to-peer trading between farmers) exists with demo data, but it is **disabled** in the tab bar in this version.
+| **Home** | Greeting, today's weather, week's rain, irrigation advice and automatic alerts (heavy rain, fungal risk, wind for spraying). |
+| **Weather** | 14-day series for the device location and the **planting simulator**. |
+| **Crops** | Register fields (name, variety, area), follow status and expected harvest. |
+| **Logbook** | Field diary: irrigation, fertilizing, spraying, planting, harvest and other tasks. |
 
 ### 🧪 Planting simulator
 
-The core of the project. The farmer picks:
+The farmer chooses **a crop** (maize, beans, soybean, cassava), **a date**, and **a kind of year**: *Wetter*, *Normal* or *Drier*.
 
-1. **A crop**: maize, beans, soybean or cassava.
-2. **A planting date**.
-3. **A climate scenario**: *Wetter*, *Normal* or *Drier*.
+| Scenario | Built from | Serra Talhada |
+| --- | --- | --- |
+| Wetter | average of the **10 wettest years** in 1985–2024 | ~948 mm/yr |
+| Normal | average of all **40 years** | ~648 mm/yr |
+| Drier | average of the **10 driest years** in 1985–2024 | ~382 mm/yr |
 
-The app evaluates **all 12 possible planting windows** (one starting each month), compares them with the chosen date and shows:
+It evaluates the **12 possible planting months**, then shows a score (**good time**, **caution**, **high risk**), the best month, expected rain and temperature versus the 40-year average, and practical tips. In the Serra Talhada region, the score also follows the **real record of the last 10 seasons** (maize, cowpea and cassava): if rain fell short in 6 or more, the score is capped at 49; in 4 or 5, at 74.
 
-- a **score from 0 to 100** and a rating (**ideal**, **moderate** or **risk**);
-- the **best month to plant** and the expected harvest month;
-- expected total rainfall and average temperature over the crop cycle, compared with the historical baseline;
-- **practical recommendations** in plain language (e.g. prepare irrigation, manage drainage, use mulch to retain moisture);
-- in the Serra Talhada (PE) region, the **actual outcome of recent crop seasons** for the chosen crop and date (see [Serra Talhada crop-season analysis](#-serra-talhada-crop-season-analysis)).
+## 🌽 Serra Talhada crop-season analysis
 
-The score starts at 100 and loses points when projected cycle rainfall falls below or above the crop's ideal range, or when average temperature leaves its ideal range.
-
-Because an average hides the bad years, in the Serra Talhada region the score also follows the **real record of the last 10 seasons** (maize, cowpea and cassava, in the Normal and Drier scenarios): if rain fell short in 6 or more of them, the score is capped at 49 ("high risk"); in 4 or 5, at 74 ("attention"). In that region the "best time to plant" is searched only between January and March, the months the analysis covers. The cap does not apply to the Wetter scenario, since it simulates a wet year.
-
-Each crop's parameters live in [`src/lib/planting-simulator.ts`](./src/lib/planting-simulator.ts).
+For Serra Talhada (PE), the team compared, season by season from 1985 to 2024, the rainfall of each cycle with the water demand of maize, cowpea and cassava (FAO-56: Hargreaves ETo × crop coefficient Kc) from NASA POWER daily data. Each season is classified as "enough rain", "tight" or "rain fell short" for nine planting dates between January 1 and March 21. Method, limits and sources: [`docs/METHODOLOGY.md`](./docs/METHODOLOGY.md) and [`docs/REFERENCES.md`](./docs/REFERENCES.md).
 
 ## 🛰️ NASA data
 
-Orbis makes two kinds of queries to the [NASA POWER API](https://power.larc.nasa.gov/docs/services/api/) (`AG` agroclimatology community). No API key is required.
+Two kinds of queries to the [NASA POWER API](https://power.larc.nasa.gov/docs/services/api/) (`AG` agroclimatology community). No API key required.
 
 | Use | Endpoint | Parameters |
 | --- | --- | --- |
 | Recent weather (14 days) | `temporal/daily/point` | `T2M`, `T2M_MAX`, `T2M_MIN`, `PRECTOTCORR`, `RH2M`, `WS2M`, `ALLSKY_SFC_SW_DWN`, `EVLAND` |
 | Year-by-year monthly history (1985–2024) | `temporal/monthly/point` | `T2M`, `PRECTOTCORR_SUM` (monthly total; falls back to `PRECTOTCORR` × days in month) |
 
-Units are converted for everyday use (wind in km/h, solar radiation in kWh/m²), and evapotranspiration (`EVLAND`) feeds the irrigation advice.
-
 ### ⚠️ How the scenarios are built
 
-The simulator's three scenarios are **not projections of the future**. Each one is the average of a group of **years that actually happened** at the device's coordinate, according to NASA POWER (1985–2024):
-
-| Scenario (in app) | Years used |
-| --- | --- |
-| Wetter ("Mais chuva") | average of the **10 wettest years** between 1985 and 2024 |
-| Normal | average of all **40 years** (1985 to 2024) |
-| Drier ("Mais seco") | average of the **10 driest years** between 1985 and 2024 |
-
-"Wettest" and "driest" are ranked by total calendar-year rainfall. Each scenario's temperature is the average of the same group of years. The simulator's "before" value is always the Normal scenario. In Serra Talhada, for example, annual rainfall is about 948 mm (Wetter), 648 mm (Normal) and 382 mm (Drier).
-
-At the time of this project the NASA POWER projection API (CMIP6) **does not cover Brazil**, so the app does not call it. If the online query fails near Serra Talhada (within 0.75°), the app uses a copy of NASA POWER data bundled with the app (`src/data/serra-talhada-clima.json`, accessed on 2026-11-14) and says so in the simulation notes. Anywhere else it shows an error: **no data is made up**.
-
-Results are a **decision-support tool, not a guaranteed forecast**.
-
-## 🌽 Serra Talhada crop-season analysis
-
-For Serra Talhada (Pernambuco), in Brazil's semi-arid Sertão, the team compared, season by season from 1985 to 2024, the rainfall of each crop cycle with the water demand of maize, cowpea and cassava, computed with the FAO-56 method (Hargreaves ETo × crop coefficient Kc) from NASA POWER daily data. Each season was classified as "enough rain", "tight" or "rain fell short" for nine planting dates between January 1 and March 21. For maize planted on January 21, for example, rain fell short in 8 of the last 10 seasons; planting on February 11, it was 5. The simulator shows this result alongside its recommendations when the location is in the region. Method, limits and sources are in [`docs/METHODOLOGY.md`](./docs/METHODOLOGY.md) and [`docs/REFERENCES.md`](./docs/REFERENCES.md).
+The scenarios are **not projections of the future**. The NASA POWER projection API (CMIP6) does not cover Brazil, so the app does not call it. If the online query fails near Serra Talhada (within 0.75°), the app uses a copy of NASA POWER data bundled with the app ([`src/data/serra-talhada-clima.json`](./src/data/serra-talhada-clima.json), accessed on 2026-11-14) and says so in the simulation notes. Anywhere else it shows an error: **no data is made up**. Results are a **decision-support tool, not a guaranteed forecast**.
 
 ## 🏗️ Architecture
 
-- **No backend**: the app queries NASA POWER directly.
-- **Offline-first for farmer data**: crops and notebook entries are stored in on-device **SQLite** (`expo-sqlite`), seeded with sample data on first launch.
-- **Real location**: `expo-location` reads the device GPS. If permission is denied or GPS fails, the app uses **Serra Talhada (PE)** as the default location (shown as "Local padrão" at the top of the screens); once GPS responds, the real position replaces it.
-- **Graceful fallback**: if NASA POWER is unreachable for recent daily weather (no internet or 15 s timeout), the screen shows demo data with a "DEMO" badge. For the simulator scenarios, see the section above.
-- **In-memory cache** of the year-by-year history per coordinate (switching scenarios makes no new request).
+```mermaid
+flowchart LR
+  A[📱 Phone or browser] --> B[Expo Router app]
+  B --> C[(SQLite on device<br/>fields + logbook)]
+  B --> D[NASA POWER API<br/>daily + monthly]
+  D -. network fails .-> E[Bundled Serra Talhada data]
+  B --> F[Simulator + scenario builder]
+  F --> G[40-season analysis<br/>FAO-56]
+```
 
-### Folder structure
+- **No backend**: the app queries NASA POWER directly.
+- **Offline-first for farmer data**: fields and logbook live in on-device **SQLite**.
+- **Real location**: GPS when allowed; otherwise **Serra Talhada (PE)** is the default location, and the real position replaces it once GPS answers.
+- **Honest fallback**: daily weather falls back to a labeled "DEMO" series; scenarios fall back to bundled NASA data only near Serra Talhada.
+- **Bilingual**: PT/EN switch with in-app translation of all screens.
 
 ```
 src/
@@ -102,34 +128,20 @@ src/
 ├── context/        # Device location
 ├── db/             # SQLite schema and repository
 ├── hooks/          # useNasaClimate, useNasaProjection, useCrops, useActivities
-├── lib/            # Pure logic: simulator, projection, alerts, irrigation
+├── lib/            # Pure logic: simulator, scenarios, alerts, i18n
 ├── services/       # NASA POWER integration
-├── data/           # Demo data and Serra Talhada data (NASA POWER)
-├── constants/      # Theme
+├── data/           # Serra Talhada NASA series and 40-season results
 └── types/          # TypeScript types
 ```
-
-## 🧰 Tech stack
-
-- [Expo](https://expo.dev) SDK 58 + [Expo Router](https://docs.expo.dev/router/introduction) (file-based routing, native tabs)
-- React 19 and React Native 0.88 (with React Compiler)
-- TypeScript
-- `expo-sqlite`, `expo-location`
-- [NASA POWER API](https://power.larc.nasa.gov/)
 
 ## 🚀 Getting started
 
 **Prerequisites:** Node.js (LTS) and npm. To test on a phone, use [Expo Go](https://expo.dev/go) or a [development build](https://docs.expo.dev/develop/development-builds/introduction/).
 
 ```bash
-# 1. Install dependencies
 npm install
-
-# 2. Start the project
 npx expo start
 ```
-
-Then choose where to open it:
 
 ```bash
 npm run android   # Android emulator or device
@@ -137,36 +149,26 @@ npm run ios       # iOS simulator (macOS)
 npm run web       # browser
 ```
 
-> Grant location access when prompted. Without it, the app can't fetch weather for your farm.
->
-> Without location permission, the app uses Serra Talhada (PE) as the default location.
->
-> In the browser, we tested on 2026-11-15: NASA POWER answers with `Access-Control-Allow-Origin: *` and requests work. If NASA ever blocks them via CORS, daily weather falls back to demo data and the simulator keeps working for Serra Talhada with the bundled data.
-
-To check the code: `npm run lint` and `npx tsc --noEmit`.
-
-To check the data layer (offline), run `npx tsx scripts/verificar-dados.ts`, or, on Node 24 with nothing to install, `node --import ./scripts/ts-register.mjs scripts/verificar-dados.ts`.
+Check the code with `npm run lint` and `npx tsc --noEmit`. Check the data layer offline with `node --import ./scripts/ts-register.mjs scripts/verificar-dados.ts` (or `npx tsx scripts/verificar-dados.ts`). Test reports: [`BUILD_LOG.md`](./BUILD_LOG.md) and [`docs/TESTES.md`](./docs/TESTES.md).
 
 ## ⚠️ Known limitations
 
-- The crops' ideal rainfall and temperature ranges are simplified reference values; they should be validated with local agronomy support (e.g. Embrapa, Emater).
-- Irrigation advice uses a simple rule (evapotranspiration minus the day's rain), with no soil sensors or crop coefficient (Kc). The evapotranspiration used is `EVLAND` (actual evapotranspiration from NASA POWER's land-surface model), **not** the FAO-56 reference evapotranspiration (ETo).
+- Crops' ideal rainfall and temperature ranges are simplified reference values; they should be validated with local agronomy support (Embrapa, Emater).
+- Irrigation advice uses a simple rule (evapotranspiration minus the day's rain). The evapotranspiration is `EVLAND` (actual evapotranspiration from NASA POWER's land-surface model), **not** the FAO-56 reference evapotranspiration.
 - NASA POWER daily data lags by about 3 days: the app's "today" is the most recent day available.
-- Simulator scenarios are averages of past years (1985–2024), not projections of the future climate.
-- The crop-season sentence only applies to the Serra Talhada region (within 0.75° of the town) and to maize, cowpea and cassava.
-- In the Serra Talhada region, the score is capped by the real record (see the simulator above). The thresholds (6+ short seasons out of 10 → at most 49; 4 or 5 → at most 74) are a team choice, not a published value.
-- NASA POWER solar radiation arrives later than the other parameters. When a day has no reading yet, the app repeats the most recent available reading.
-- On the web, confirmations (e.g. deleting a crop) use the browser's standard dialog.
-- The Market screen uses fictional data and is disabled.
+- Scenarios are averages of past years (1985–2024), not future projections.
+- The crop-season sentence and score cap only apply near Serra Talhada (within 0.75°) and to maize, cowpea and cassava. The cap thresholds (6+ short seasons of 10 → 49; 4–5 → 74) are a team choice.
+- NASA POWER solar radiation arrives later than other parameters; missing days repeat the latest reading.
+- The Market screen uses fictional data and is hidden from the tabs.
+- Tested on Chromium; Safari, Firefox and physical devices are still to be verified.
 
 ## 🗺️ Roadmap
 
 - Real future-climate projections for Brazil (e.g. NASA NEX-GDDP-CMIP6).
 - Own server as a NASA POWER proxy and cache.
 - Extend the FAO-56 crop-season analysis to other towns in the semi-arid region.
-- More crops and varieties, with parameters validated by specialists.
-- Soil sensor and crop coefficient (Kc) integration.
-- Enable the Market screen for direct farmer-to-farmer sales.
+- More crops and varieties, validated by specialists.
+- Soil sensors and crop-coefficient (Kc) integration.
 
 ## 🤖 Use of AI
 
@@ -179,5 +181,8 @@ Released under the MIT License. See [`LICENSE`](./LICENSE).
 ## 🙏 Acknowledgments
 
 - **NASA POWER**, for open agroclimatology data.
-- The **NASA Space Apps Hackathon** organizers.
+- The **NASA Space Apps** organizers.
+- **Embrapa** and **IBGE**, for the regional references listed in [`docs/REFERENCES.md`](./docs/REFERENCES.md).
 - Family farmers, who inspire this project.
+
+<div align="center"><sub>Made in Pernambuco 🇧🇷 by <b>Agreste Cósmico</b> · NASA Space Apps Challenge 2026</sub></div>
