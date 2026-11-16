@@ -24,6 +24,7 @@ import {
 } from 'react';
 import { AppState, Linking, Platform } from 'react-native';
 
+import { isNearSerraTalhada } from '@/lib/serra-talhada';
 import type { FarmLocation } from '@/types';
 
 type DeviceLocationStatus = 'loading' | 'ready' | 'denied' | 'error';
@@ -86,22 +87,18 @@ export function DeviceLocationProvider({ children }: { children: ReactNode }) {
 
   const describePosition = useCallback(
     async (latitude: number, longitude: number): Promise<FarmLocation> => {
-      let city = 'Coordenadas do aparelho';
-      let state = `${formatCoordinate(latitude)}, ${formatCoordinate(longitude)}`;
+      // Sem nome de cidade (ex.: na web não há geocódigo reverso), mostra algo
+      // legível: a região de Serra Talhada ou as coordenadas em graus.
+      const nearDefault = isNearSerraTalhada(latitude, longitude);
+      let city = nearDefault ? 'Região de Serra Talhada' : 'Sua localização';
+      let state = nearDefault ? 'PE' : formatLatLon(latitude, longitude);
 
       if (Platform.OS !== 'web') {
         try {
           const [address] = await Location.reverseGeocodeAsync({ latitude, longitude });
           if (address) {
-            city =
-              address.city ??
-              address.subregion ??
-              address.district ??
-              'Coordenadas do aparelho';
-            state =
-              address.region ??
-              address.isoCountryCode ??
-              `${formatCoordinate(latitude)}, ${formatCoordinate(longitude)}`;
+            city = address.city ?? address.subregion ?? address.district ?? city;
+            state = address.region ?? address.isoCountryCode ?? state;
           }
         } catch {
           // O geocódigo reverso é opcional; as coordenadas continuam válidas.
@@ -295,6 +292,9 @@ export function useDeviceLocation() {
   return context;
 }
 
-function formatCoordinate(value: number) {
-  return value.toFixed(3).replace('.', ',');
+/** -8.05, -34.9 → "8,05° S · 34,90° O". */
+function formatLatLon(latitude: number, longitude: number) {
+  const lat = `${Math.abs(latitude).toFixed(2).replace('.', ',')}° ${latitude < 0 ? 'S' : 'N'}`;
+  const lon = `${Math.abs(longitude).toFixed(2).replace('.', ',')}° ${longitude < 0 ? 'O' : 'L'}`;
+  return `${lat} · ${lon}`;
 }
