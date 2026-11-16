@@ -117,11 +117,20 @@ export function simulatePlanting(
     allWindows.find((w) => w.startMonth === baseSelected.startMonth) ?? allWindows[0];
 
   // Na região de Serra Talhada, a melhor época é buscada só nos meses que a
-  // análise cobre (janeiro a março, a época de plantio da região).
+  // análise cobre (janeiro a março, a época de plantio da região). Cada mês é
+  // avaliado pela sua melhor data, inclusive o mês escolhido: assim o aviso de
+  // "melhor época" não aponta outro mês quando a melhor data está no mesmo mês
+  // (ex.: feijão em 11/02, melhor data 21/02).
+  const regionMonths = (w: WindowEvaluation) =>
+    regional !== null && regional.some((o) => plantingMonth(o.planting) === w.startMonth);
   const candidates =
-    regional !== null
-      ? allWindows.filter((w) => regional.some((o) => plantingMonth(o.planting) === w.startMonth))
-      : allWindows;
+    regional === null
+      ? allWindows
+      : capScores
+        ? evaluated
+            .filter(regionMonths)
+            .map((w) => capByHarvestRecord(w, fewestShortInMonth(regional, w.startMonth)))
+        : allWindows.filter(regionMonths);
   const bestWindow = [...(candidates.length > 0 ? candidates : allWindows)].sort(
     (a, b) => b.score - a.score,
   )[0];

@@ -197,11 +197,19 @@ function scenarioNote(
   const group = scenarioYears(years, scenario);
   const list = group.map((year) => year.year).join(', ');
 
+  // Quantos anos do grupo caíram na última década da série (ex.: 2015–2024).
+  const recentFrom = endYear - 9;
+  const recent = group.filter((year) => year.year >= recentFrom).length;
+  const recentText =
+    recent === 0
+      ? ` Nenhum deles foi entre ${recentFrom} e ${endYear}.`
+      : ` ${recent} ${recent === 1 ? 'deles foi' : 'deles foram'} entre ${recentFrom} e ${endYear}.`;
+
   if (scenario === 'ssp126') {
-    return `Mais chuva: média dos ${group.length} anos com mais chuva desde ${startYear} (${list}).`;
+    return `Mais chuva: média dos ${group.length} anos com mais chuva desde ${startYear} (${list}).${recentText}`;
   }
   if (scenario === 'ssp370') {
-    return `Mais seco: média dos ${group.length} anos com menos chuva desde ${startYear} (${list}).`;
+    return `Mais seco: média dos ${group.length} anos com menos chuva desde ${startYear} (${list}).${recentText}`;
   }
   return `Normal: média dos ${group.length} anos de ${startYear} a ${endYear}.`;
 }
