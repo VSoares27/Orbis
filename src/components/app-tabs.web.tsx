@@ -1,4 +1,4 @@
-import { type Href } from 'expo-router';
+import { router, usePathname, type Href } from 'expo-router';
 import { Tabs, TabList, TabSlot, TabTrigger, type TabTriggerSlotProps } from 'expo-router/ui';
 import { forwardRef, type ElementRef } from 'react';
 import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
@@ -24,6 +24,12 @@ const tabs: TabItem[] = [
   { name: 'caderneta', href: '/caderneta', label: 'Caderneta', icon: 'notebook-outline' },
 ];
 
+/** A aba está ativa quando a rota atual é ela ou uma rota dentro dela. */
+function isActiveTab(pathname: string, href: string) {
+  if (href === '/') return pathname === '/' || pathname === '/index';
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 /** Acima desta largura de janela, o app aparece dentro da moldura de celular. */
 const FRAME_BREAKPOINT = 520;
 
@@ -39,6 +45,7 @@ const FRAME_BREAKPOINT = 520;
 export default function AppTabsWeb() {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
+  const pathname = usePathname();
   const framed = width > FRAME_BREAKPOINT;
 
   return (
@@ -48,10 +55,15 @@ export default function AppTabsWeb() {
           <TabSlot style={styles.slot} />
           <TabList
             style={[styles.tabList, { paddingBottom: Spacing.two + (framed ? 0 : insets.bottom) }]}>
-            <View style={styles.tabBar}>
+            <View style={styles.tabBar} role="tablist">
               {tabs.map((tab) => (
                 <TabTrigger key={tab.name} name={tab.name} href={tab.href} asChild>
-                  <WebTabButton icon={tab.icon}>{tab.label}</WebTabButton>
+                  <WebTabButton
+                    icon={tab.icon}
+                    target={tab.href}
+                    active={isActiveTab(pathname, String(tab.href))}>
+                    {tab.label}
+                  </WebTabButton>
                 </TabTrigger>
               ))}
             </View>
@@ -65,29 +77,40 @@ export default function AppTabsWeb() {
 /**
  * `asChild` exige que o componente aceite e encaminhe `ref`.
  * Por isso usamos forwardRef em volta do Pressable.
+ *
+ * No export web, o `onPress` e o `isFocused` do TabTrigger não funcionam (o
+ * toque não trocava de aba e nenhuma aba aparecia ativa). Por isso a navegação
+ * usa `router.navigate`, o mesmo caminho dos atalhos da tela Início, e a aba
+ * ativa vem da rota atual. O TabTrigger continua registrando as rotas.
  */
-const WebTabButton = forwardRef<ElementRef<typeof Pressable>, TabTriggerSlotProps & { icon: IconName }>(
-  function WebTabButton({ children, isFocused, icon, style, ...props }, ref) {
-    return (
-      <Pressable
-        ref={ref}
-        {...props}
-        style={({ pressed }) => [
-          styles.tab,
-          isFocused && styles.tabFocused,
-          pressed && styles.pressed,
-        ]}>
-        <Icon name={icon} size={20} color={isFocused ? Brand.green : Brand.textMuted} />
-        <AppText
-          variant="caption"
-          tone={isFocused ? 'brand' : 'muted'}
-          style={isFocused ? styles.labelFocused : undefined}>
-          {children}
-        </AppText>
-      </Pressable>
-    );
-  },
-);
+const WebTabButton = forwardRef<
+  ElementRef<typeof Pressable>,
+  TabTriggerSlotProps & { icon: IconName; target: Href; active: boolean }
+>(function WebTabButton(
+  { children, icon, target, active, isFocused: _isFocused, onPress: _onPress, style, ...props },
+  ref,
+) {
+  return (
+    <Pressable
+      ref={ref}
+      {...props}
+      onPress={() => {
+        if (!active) router.navigate(target);
+      }}
+      role="tab"
+      aria-label={typeof children === 'string' ? children : undefined}
+      aria-selected={active}
+      style={({ pressed }) => [styles.tab, active && styles.tabFocused, pressed && styles.pressed]}>
+      <Icon name={icon} size={20} color={active ? Brand.green : Brand.textMuted} />
+      <AppText
+        variant="caption"
+        tone={active ? 'brand' : 'muted'}
+        style={active ? styles.labelFocused : undefined}>
+        {children}
+      </AppText>
+    </Pressable>
+  );
+});
 
 const styles = StyleSheet.create({
   backdrop: {
